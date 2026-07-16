@@ -1,0 +1,52 @@
+[
+  {
+    "question": "What is JQL?",
+    "answer": "JQL is the Jira Query Language — a query language used to construct structured searches to locate issues in Jira. It lets users specify criteria using fields, operators, and values (for example: status = \"Done\") to find issues across projects [page 2][page 7].",
+    "verdict": {
+      "grounded": true,
+      "relevant": true,
+      "appropriately_refused": null,
+      "issues": "Contains unnecessary bracketed citation markers ([page 2][page 7]) not supported by the retrieved context; otherwise accurate and concise."
+    }
+  },
+  {
+    "question": "How do operators work in JQL?",
+    "answer": "Operators in JQL are the symbols or words that relate a field to a value and let you compare or match issue attributes to refine searches [page 2]. They operate like:\n\n- Equality / inequality: = and != (e.g., status = \"Done\"; priority != \"Low\") [pages 2–3].  \n- Collections: IN and NOT IN to match or exclude lists of values (e.g., status IN (\"Open\", \"In Progress\"); type NOT IN (\"Task\", \"Sub-task\")) [page 3].  \n- Numeric/date comparisons: >, <, >=, <= for greater/less than (and inclusive bounds) (e.g., created > \"-5d\"; due <= \"2024-03-31\") [page 3].  \n- Empty/null checks: IS and IS NOT for fields that can be EMPTY (e.g., assignee IS EMPTY; fixVersion IS NOT EMPTY) [page 4].  \n- Text search: ~ to find fields that contain a term and !~ to find those that do not (e.g., summary ~ \"bug\"; summary !~ \"Task\") [page 4].  \n- Historical queries: WAS, WAS IN, WAS NOT, WAS NOT IN (optionally with time frames) to find issues based on previous field values or statuses (examples shown using DURING) [page 4].\n\nTogether these operators let you build precise JQL queries by specifying how a field should compare to the value(s) you provide [page 2].",
+    "verdict": {
+      "grounded": true,
+      "relevant": true,
+      "appropriately_refused": null,
+      "issues": "none (minor: the answer includes bracketed page citations like [pages 2–3] that aren't present in the retrieved context, but content itself matches the source)"
+    }
+  },
+  {
+    "question": "What is the capital of France?",
+    "answer": "I don't have enough information in the provided context to answer that question. The supplied pages discuss JQL functions and wildcard/date searches, not world capitals [page 5] [page 12] [page 13].",
+    "verdict": {
+      "grounded": true,
+      "relevant": true,
+      "appropriately_refused": true,
+      "issues": "none"
+    }
+  },
+  {
+    "question": "Can I use regular expressions in JQL?",
+    "answer": "No — JQL does not natively support regular expressions. Plugins such as ScriptRunner add “regex-like” searching via custom JQL functions (for example versionMatch for version fields, wildcard label searches, and other advanced pattern-matching functions) [page 6][page 7]. JQL itself does support wildcards for partial matches, but wildcards (especially leading ones) and regex-like searches can hurt performance, and tools like ScriptRunner require admin access and some learning to use safely [page 14][page 7].",
+    "verdict": {
+      "grounded": true,
+      "relevant": true,
+      "appropriately_refused": null,
+      "issues": "none"
+    }
+  },
+  {
+    "question": "What is the workshop being offered?",
+    "answer": "A 7‑hour live practical, hands‑on workshop (a deep‑dive into JQL — Introduction to Jira Query Language) [page 15].",
+    "verdict": {
+      "grounded": true,
+      "relevant": true,
+      "appropriately_refused": false,
+      "issues": "Includes an extraneous reference '[page 15]' not present in the retrieved context; otherwise answer matches the context (7-hour live practical hands-on JQL workshop)."
+    }
+  }
+]

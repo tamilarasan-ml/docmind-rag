@@ -1,0 +1,22 @@
+[
+  {
+    "question": "What is JQL?",
+    "expected_topic": "Definition of Jira Query Language"
+  },
+  {
+    "question": "How do operators work in JQL?",
+    "expected_topic": "Operators like =, !=, IN, NOT IN"
+  },
+  {
+    "question": "What is the capital of France?",
+    "expected_topic": "NOT IN DOCUMENT - should refuse to answer"
+  },
+  {
+    "question": "Can I use regular expressions in JQL?",
+    "expected_topic": "Regex limitations, ScriptRunner plugin"
+  },
+  {
+    "question": "What is the workshop being offered?",
+    "expected_topic": "7-hour live workshop details"
+  }
+]
