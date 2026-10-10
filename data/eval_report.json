@@ -1,52 +1,1793 @@
-[
-  {
-    "question": "What is JQL?",
-    "answer": "JQL is the Jira Query Language — a query language used to construct structured searches to locate issues in Jira. It lets users specify criteria using fields, operators, and values (for example: status = \"Done\") to find issues across projects [page 2][page 7].",
-    "verdict": {
-      "grounded": true,
-      "relevant": true,
-      "appropriately_refused": null,
-      "issues": "Contains unnecessary bracketed citation markers ([page 2][page 7]) not supported by the retrieved context; otherwise accurate and concise."
-    }
+{
+  "summary": {
+    "total_questions": 26,
+    "valid_judge_results": 26,
+    "evaluation_errors": 0,
+    "grounded": 26,
+    "relevant": 26,
+    "judge_citation_supported": 25,
+    "citation_pages_retrieved": 26,
+    "retrieval_metrics": {
+      "answerable_questions_evaluated": 22,
+      "hit_at_k": {
+        "hit_at_1": {
+          "hits": 22,
+          "total": 22,
+          "score": 1.0
+        },
+        "hit_at_3": {
+          "hits": 22,
+          "total": 22,
+          "score": 1.0
+        },
+        "hit_at_5": {
+          "hits": 22,
+          "total": 22,
+          "score": 1.0
+        }
+      },
+      "mrr": 1.0
+    },
+    "answerable_questions": 22,
+    "unnecessary_refusals": 0,
+    "answerable_not_refused_verdicts": 0,
+    "unanswerable_questions": 4,
+    "correctly_refused_traps": 4,
+    "failed_trap_refusals": 0,
+    "indeterminate_trap_refusals": 0,
+    "questions_with_expected_facts": 22,
+    "questions_with_valid_fact_coverage": 22,
+    "questions_not_evaluated_for_fact_coverage": 0,
+    "expected_fact_count": 52,
+    "covered_fact_count": 52,
+    "overall_fact_coverage": 1.0
   },
-  {
-    "question": "How do operators work in JQL?",
-    "answer": "Operators in JQL are the symbols or words that relate a field to a value and let you compare or match issue attributes to refine searches [page 2]. They operate like:\n\n- Equality / inequality: = and != (e.g., status = \"Done\"; priority != \"Low\") [pages 2–3].  \n- Collections: IN and NOT IN to match or exclude lists of values (e.g., status IN (\"Open\", \"In Progress\"); type NOT IN (\"Task\", \"Sub-task\")) [page 3].  \n- Numeric/date comparisons: >, <, >=, <= for greater/less than (and inclusive bounds) (e.g., created > \"-5d\"; due <= \"2024-03-31\") [page 3].  \n- Empty/null checks: IS and IS NOT for fields that can be EMPTY (e.g., assignee IS EMPTY; fixVersion IS NOT EMPTY) [page 4].  \n- Text search: ~ to find fields that contain a term and !~ to find those that do not (e.g., summary ~ \"bug\"; summary !~ \"Task\") [page 4].  \n- Historical queries: WAS, WAS IN, WAS NOT, WAS NOT IN (optionally with time frames) to find issues based on previous field values or statuses (examples shown using DURING) [page 4].\n\nTogether these operators let you build precise JQL queries by specifying how a field should compare to the value(s) you provide [page 2].",
-    "verdict": {
-      "grounded": true,
-      "relevant": true,
-      "appropriately_refused": null,
-      "issues": "none (minor: the answer includes bracketed page citations like [pages 2–3] that aren't present in the retrieved context, but content itself matches the source)"
+  "results": [
+    {
+      "id": "q01",
+      "type": "lookup",
+      "question": "What does currentUser() do in JQL?",
+      "expected_answerable": true,
+      "gold_pages": [
+        5
+      ],
+      "expected_facts": [
+        "Explains what currentUser() represents according to the source.",
+        "Explains how currentUser() can be used in an assignee query, if supported by the source."
+      ],
+      "answer": "currentUser() is a JQL function that represents the user running the query. It is used to find issues assigned to (or otherwise related to) the currently logged-in user. Example from the docs:\n\nassignee = currentUser()\n\nThis query \"finds issues assigned to the user currently logged in\" / \"returns all issues assigned to the user executing the search.\" [page 5][page 8]",
+      "retrieved_page_ranking": [
+        5,
+        8,
+        2
+      ],
+      "retrieved_pages": [
+        2,
+        5,
+        8
+      ],
+      "verdict": {
+        "grounded": true,
+        "relevant": true,
+        "appropriately_refused": null,
+        "citation_supported": true,
+        "issues": "The answer adds the phrase \"or otherwise related to\" which is not supported by the provided context; the sources only state that currentUser() finds issues assigned to the user currently logged in.",
+        "fact_coverage": [
+          {
+            "fact": "Explains what currentUser() represents according to the source.",
+            "covered": true,
+            "evidence": "The answer states currentUser() \"represents the user running the query\" which matches the retrieved context: page 5 and page 8 state it finds/issues for the user currently logged in / executing the search."
+          },
+          {
+            "fact": "Explains how currentUser() can be used in an assignee query, if supported by the source.",
+            "covered": true,
+            "evidence": "The answer gives the example \"assignee = currentUser()\" and explains it finds issues assigned to the currently logged-in user, which is directly supported by the examples on page 5 and page 8."
+          }
+        ],
+        "cited_pages": [
+          5,
+          8
+        ],
+        "citation_pages_retrieved": true
+      },
+      "fact_coverage": {
+        "evaluated": true,
+        "expected_count": 2,
+        "covered_count": 2,
+        "coverage": 1.0,
+        "missing_facts": [],
+        "validation_error": null,
+        "details": [
+          {
+            "fact": "Explains what currentUser() represents according to the source.",
+            "covered": true,
+            "evidence": "The answer states currentUser() \"represents the user running the query\" which matches the retrieved context: page 5 and page 8 state it finds/issues for the user currently logged in / executing the search."
+          },
+          {
+            "fact": "Explains how currentUser() can be used in an assignee query, if supported by the source.",
+            "covered": true,
+            "evidence": "The answer gives the example \"assignee = currentUser()\" and explains it finds issues assigned to the currently logged-in user, which is directly supported by the examples on page 5 and page 8."
+          }
+        ]
+      }
+    },
+    {
+      "id": "q02",
+      "type": "paraphrase",
+      "question": "How do I find tickets that are assigned to me?",
+      "expected_answerable": true,
+      "gold_pages": [
+        5,
+        8
+      ],
+      "expected_facts": [
+        "Use the JQL query assignee = currentUser() to find issues assigned to the user running the search.",
+        "The assignee field can also be queried using a specific username."
+      ],
+      "answer": "Use the assignee field with the currentUser() function. Example:\n\nassignee = currentUser()\n\nThis returns all issues assigned to the user executing the search. You can also specify a username directly instead of currentUser(). [page 8][page 5]",
+      "retrieved_page_ranking": [
+        8,
+        5,
+        11
+      ],
+      "retrieved_pages": [
+        5,
+        8,
+        11
+      ],
+      "verdict": {
+        "grounded": true,
+        "relevant": true,
+        "appropriately_refused": null,
+        "citation_supported": true,
+        "issues": "",
+        "fact_coverage": [
+          {
+            "fact": "Use the JQL query assignee = currentUser() to find issues assigned to the user running the search.",
+            "covered": true,
+            "evidence": "The answer gives the exact query 'assignee = currentUser()' and the retrieved context (page 8 and page 5) states that this returns issues assigned to the user executing the search."
+          },
+          {
+            "fact": "The assignee field can also be queried using a specific username.",
+            "covered": true,
+            "evidence": "The answer states you can specify a username directly instead of currentUser(), and the context (page 8) explicitly says 'You can also specify usernames directly.'"
+          }
+        ],
+        "cited_pages": [
+          5,
+          8
+        ],
+        "citation_pages_retrieved": true
+      },
+      "fact_coverage": {
+        "evaluated": true,
+        "expected_count": 2,
+        "covered_count": 2,
+        "coverage": 1.0,
+        "missing_facts": [],
+        "validation_error": null,
+        "details": [
+          {
+            "fact": "Use the JQL query assignee = currentUser() to find issues assigned to the user running the search.",
+            "covered": true,
+            "evidence": "The answer gives the exact query 'assignee = currentUser()' and the retrieved context (page 8 and page 5) states that this returns issues assigned to the user executing the search."
+          },
+          {
+            "fact": "The assignee field can also be queried using a specific username.",
+            "covered": true,
+            "evidence": "The answer states you can specify a username directly instead of currentUser(), and the context (page 8) explicitly says 'You can also specify usernames directly.'"
+          }
+        ]
+      }
+    },
+    {
+      "id": "q03",
+      "type": "lookup",
+      "question": "What is ScriptRunner used for?",
+      "expected_answerable": true,
+      "gold_pages": [
+        6
+      ],
+      "expected_facts": [
+        "ScriptRunner is a Jira plugin that extends JQL functionality with regex-like searching.",
+        "ScriptRunner provides custom JQL functions that support more granular and complex searches.",
+        "The versionMatch function can perform regex-like searches on version fields."
+      ],
+      "answer": "ScriptRunner is a popular Jira plugin used to extend JQL so you can perform more granular, regex‑like and advanced searches that standard JQL cannot do [page 6].\n\nKey features (from the context)\n- Custom JQL functions that enable regex‑like searches and more complex queries beyond native JQL [page 6].\n- versionMatch function — allows regex‑like matching on version fields. Example given: \n  fixVersion in versionMatch(\"V_*_2019\") [page 6].\n- Wildcard searches for labels — lets you find issues whose labels match a pattern (not possible with standard JQL) [page 6].\n- Advanced pattern matching — ScriptRunner’s functions can approximate regex flexibility and allow searches based on linked issues, issue properties, and other attributes not accessible with standard JQL [page 6].\n\nImportant considerations and limits\n- Performance: regex‑like searches can impact Jira performance on large instances, so use them judiciously [page 7].\n- Learning curve: ScriptRunner’s advanced features require familiarity with Jira and Groovy scripting [page 7].\n- Access/permissions: installing and configuring ScriptRunner typically requires administrative access [page 7].",
+      "retrieved_page_ranking": [
+        6,
+        7,
+        15
+      ],
+      "retrieved_pages": [
+        6,
+        7,
+        15
+      ],
+      "verdict": {
+        "grounded": true,
+        "relevant": true,
+        "appropriately_refused": null,
+        "citation_supported": true,
+        "issues": "",
+        "fact_coverage": [
+          {
+            "fact": "ScriptRunner is a Jira plugin that extends JQL functionality with regex-like searching.",
+            "covered": true,
+            "evidence": "The answer states ScriptRunner is a popular Jira plugin that extends JQL to perform regex-like searches [page 6], which matches the retrieved context describing ScriptRunner enhancing JQL with regex-like searching (page 6)."
+          },
+          {
+            "fact": "ScriptRunner provides custom JQL functions that support more granular and complex searches.",
+            "covered": true,
+            "evidence": "The answer notes custom JQL functions enabling more granular and complex searches [page 6], consistent with the context saying ScriptRunner provides custom JQL functions for more granular and complex searches (page 6)."
+          },
+          {
+            "fact": "The versionMatch function can perform regex-like searches on version fields.",
+            "covered": true,
+            "evidence": "The answer mentions the versionMatch function and gives the example fixVersion in versionMatch(\"V_*_2019\") [page 6], which matches the context describing versionMatch allowing regex-like searches on version fields (page 6)."
+          }
+        ],
+        "cited_pages": [
+          6,
+          7
+        ],
+        "citation_pages_retrieved": true
+      },
+      "fact_coverage": {
+        "evaluated": true,
+        "expected_count": 3,
+        "covered_count": 3,
+        "coverage": 1.0,
+        "missing_facts": [],
+        "validation_error": null,
+        "details": [
+          {
+            "fact": "ScriptRunner is a Jira plugin that extends JQL functionality with regex-like searching.",
+            "covered": true,
+            "evidence": "The answer states ScriptRunner is a popular Jira plugin that extends JQL to perform regex-like searches [page 6], which matches the retrieved context describing ScriptRunner enhancing JQL with regex-like searching (page 6)."
+          },
+          {
+            "fact": "ScriptRunner provides custom JQL functions that support more granular and complex searches.",
+            "covered": true,
+            "evidence": "The answer notes custom JQL functions enabling more granular and complex searches [page 6], consistent with the context saying ScriptRunner provides custom JQL functions for more granular and complex searches (page 6)."
+          },
+          {
+            "fact": "The versionMatch function can perform regex-like searches on version fields.",
+            "covered": true,
+            "evidence": "The answer mentions the versionMatch function and gives the example fixVersion in versionMatch(\"V_*_2019\") [page 6], which matches the context describing versionMatch allowing regex-like searches on version fields (page 6)."
+          }
+        ]
+      }
+    },
+    {
+      "id": "q04",
+      "type": "paraphrase",
+      "question": "Will regex-style searches slow down my Jira instance?",
+      "expected_answerable": true,
+      "gold_pages": [
+        7
+      ],
+      "expected_facts": [
+        "Regex-like searches can affect Jira performance, especially on large instances.",
+        "Regex-like searching should be used judiciously."
+      ],
+      "answer": "Short answer: Yes — regex-style or regex-like searches can slow down Jira, especially on large instances, so use them sparingly. [page 7]\n\nDetails:\n- Using regex-like searches (for example via plugins) can impact Jira’s performance, particularly on large instances. [page 7]\n- Wildcards can also harm performance, and leading wildcards (for example \"*config\") are especially expensive; avoid them when possible. [page 14]\n- Plugins such as ScriptRunner add regex-like JQL functions (for example, versionMatch) but you should still use these advanced searches judiciously and be aware of their performance cost. [page 6]",
+      "retrieved_page_ranking": [
+        7,
+        14,
+        6
+      ],
+      "retrieved_pages": [
+        6,
+        7,
+        14
+      ],
+      "verdict": {
+        "grounded": true,
+        "relevant": true,
+        "appropriately_refused": null,
+        "citation_supported": false,
+        "issues": "Minor citation mismatch: the third bullet attributes a performance caution to page 6. Page 6 documents ScriptRunner features (e.g., versionMatch) but the explicit warning that regex-like searches impact performance (and should be used judiciously) is on page 7.",
+        "fact_coverage": [
+          {
+            "fact": "Regex-like searches can affect Jira performance, especially on large instances.",
+            "covered": true,
+            "evidence": "The answer states regex-style searches can slow Jira, matching page 7 which says 'Using regex-like searches can impact Jira's performance, especially on large instances.'"
+          },
+          {
+            "fact": "Regex-like searching should be used judiciously.",
+            "covered": true,
+            "evidence": "The answer recommends using them sparingly; page 7 explicitly advises that 'It's important to use these features judiciously.'"
+          }
+        ],
+        "cited_pages": [
+          6,
+          7,
+          14
+        ],
+        "citation_pages_retrieved": true
+      },
+      "fact_coverage": {
+        "evaluated": true,
+        "expected_count": 2,
+        "covered_count": 2,
+        "coverage": 1.0,
+        "missing_facts": [],
+        "validation_error": null,
+        "details": [
+          {
+            "fact": "Regex-like searches can affect Jira performance, especially on large instances.",
+            "covered": true,
+            "evidence": "The answer states regex-style searches can slow Jira, matching page 7 which says 'Using regex-like searches can impact Jira's performance, especially on large instances.'"
+          },
+          {
+            "fact": "Regex-like searching should be used judiciously.",
+            "covered": true,
+            "evidence": "The answer recommends using them sparingly; page 7 explicitly advises that 'It's important to use these features judiciously.'"
+          }
+        ]
+      }
+    },
+    {
+      "id": "q05",
+      "type": "lookup",
+      "question": "How do I search for issues with status In Progress?",
+      "expected_answerable": true,
+      "gold_pages": [
+        8
+      ],
+      "expected_facts": [
+        "Use the JQL query status = \"In Progress\" to find issues currently in progress."
+      ],
+      "answer": "Use this JQL:\n\nstatus = \"In Progress\"\n\nThis query returns all issues that are currently in progress [page 8]. The status field and = operator are part of JQL's basic field/operator/value syntax [page 2].",
+      "retrieved_page_ranking": [
+        8,
+        2,
+        9
+      ],
+      "retrieved_pages": [
+        2,
+        8,
+        9
+      ],
+      "verdict": {
+        "grounded": true,
+        "relevant": true,
+        "appropriately_refused": null,
+        "citation_supported": true,
+        "issues": "",
+        "fact_coverage": [
+          {
+            "fact": "Use the JQL query status = \"In Progress\" to find issues currently in progress.",
+            "covered": true,
+            "evidence": "The answer gives the JQL 'status = \"In Progress\"' and cites page 8; the retrieved context on page 8 explicitly states that 'status = \"In Progress\" This query returns all issues that are currently in progress.'"
+          }
+        ],
+        "cited_pages": [
+          2,
+          8
+        ],
+        "citation_pages_retrieved": true
+      },
+      "fact_coverage": {
+        "evaluated": true,
+        "expected_count": 1,
+        "covered_count": 1,
+        "coverage": 1.0,
+        "missing_facts": [],
+        "validation_error": null,
+        "details": [
+          {
+            "fact": "Use the JQL query status = \"In Progress\" to find issues currently in progress.",
+            "covered": true,
+            "evidence": "The answer gives the JQL 'status = \"In Progress\"' and cites page 8; the retrieved context on page 8 explicitly states that 'status = \"In Progress\" This query returns all issues that are currently in progress.'"
+          }
+        ]
+      }
+    },
+    {
+      "id": "q06",
+      "type": "near_duplicate",
+      "question": "How do I combine several criteria using the AND operator?",
+      "expected_answerable": true,
+      "gold_pages": [
+        9
+      ],
+      "expected_facts": [
+        "The AND operator combines multiple search criteria.",
+        "A query using AND returns issues that satisfy all the combined criteria.",
+        "The source example combines project, status, and Customer Impact conditions."
+      ],
+      "answer": "Use the AND operator to require that an issue meets all listed criteria. AND simply joins multiple field tests so every condition must be true [page 9].\n\nExample (from the docs):\nproject = \"MYPROJECT\" AND status = \"Open\" AND \"Customer Impact\" = \"High\"\nThis returns open issues in MYPROJECT with a high customer impact [page 9].\n\nYou can mix system and custom fields when using AND (e.g., project, status, assignee, or a custom field by name or by ID) [pages 8, 2]. For clarity or precision you can also combine AND with parentheses and other operators (e.g., grouping an OR clause) — example:\nproject = \"MYPROJECT\" AND (status = \"Resolved\" OR status = \"Closed\") [page 9].",
+      "retrieved_page_ranking": [
+        9,
+        8,
+        2
+      ],
+      "retrieved_pages": [
+        2,
+        8,
+        9
+      ],
+      "verdict": {
+        "grounded": true,
+        "relevant": true,
+        "appropriately_refused": null,
+        "citation_supported": true,
+        "issues": "",
+        "fact_coverage": [
+          {
+            "fact": "The AND operator combines multiple search criteria.",
+            "covered": true,
+            "evidence": "The answer states 'Use the AND operator to require that an issue meets all listed criteria' and 'AND simply joins multiple field tests' which matches the page 9 context describing combining JQL with AND."
+          },
+          {
+            "fact": "A query using AND returns issues that satisfy all the combined criteria.",
+            "covered": true,
+            "evidence": "The answer explains that 'every condition must be true' and gives an example that returns only issues meeting all conditions; page 9 supports this by showing the AND example and its result."
+          },
+          {
+            "fact": "The source example combines project, status, and Customer Impact conditions.",
+            "covered": true,
+            "evidence": "The answer reproduces the example 'project = \"MYPROJECT\" AND status = \"Open\" AND \"Customer Impact\" = \"High\"', which matches the example on page 9."
+          }
+        ],
+        "cited_pages": [
+          2,
+          8,
+          9
+        ],
+        "citation_pages_retrieved": true
+      },
+      "fact_coverage": {
+        "evaluated": true,
+        "expected_count": 3,
+        "covered_count": 3,
+        "coverage": 1.0,
+        "missing_facts": [],
+        "validation_error": null,
+        "details": [
+          {
+            "fact": "The AND operator combines multiple search criteria.",
+            "covered": true,
+            "evidence": "The answer states 'Use the AND operator to require that an issue meets all listed criteria' and 'AND simply joins multiple field tests' which matches the page 9 context describing combining JQL with AND."
+          },
+          {
+            "fact": "A query using AND returns issues that satisfy all the combined criteria.",
+            "covered": true,
+            "evidence": "The answer explains that 'every condition must be true' and gives an example that returns only issues meeting all conditions; page 9 supports this by showing the AND example and its result."
+          },
+          {
+            "fact": "The source example combines project, status, and Customer Impact conditions.",
+            "covered": true,
+            "evidence": "The answer reproduces the example 'project = \"MYPROJECT\" AND status = \"Open\" AND \"Customer Impact\" = \"High\"', which matches the example on page 9."
+          }
+        ]
+      }
+    },
+    {
+      "id": "q07",
+      "type": "lookup",
+      "question": "How do I group conditions with parentheses in a query?",
+      "expected_answerable": true,
+      "gold_pages": [
+        10
+      ],
+      "expected_facts": [
+        "Parentheses group conditions in a JQL query.",
+        "Grouping conditions helps ensure logical evaluation is performed correctly.",
+        "The source demonstrates grouping conditions with AND and OR inside parentheses."
+      ],
+      "answer": "Use parentheses to group sets of conditions so AND/OR/NOT are evaluated together, which makes complex queries clear and ensures the correct logical evaluation [page 9][page 10].\n\nExamples from the docs:\n- project = \"MYPROJECT\" AND (status = \"Resolved\" OR status = \"Closed\") [page 9]\n- (color = 'red' AND size = 'large') OR (color = 'blue' AND NOT size = 'small') [page 10]\n\nThese show parentheses grouping alternatives and combined conditions (AND, OR, NOT) for precise searches [page 9][page 10].",
+      "retrieved_page_ranking": [
+        10,
+        9,
+        3
+      ],
+      "retrieved_pages": [
+        3,
+        9,
+        10
+      ],
+      "verdict": {
+        "grounded": true,
+        "relevant": true,
+        "appropriately_refused": null,
+        "citation_supported": true,
+        "issues": "",
+        "fact_coverage": [
+          {
+            "fact": "Parentheses group conditions in a JQL query.",
+            "covered": true,
+            "evidence": "The answer states 'Use parentheses to group sets of conditions...' and the retrieved pages (page 9) explicitly show 'Using Parentheses Group conditions for clarity and precision' with example queries using parentheses."
+          },
+          {
+            "fact": "Grouping conditions helps ensure logical evaluation is performed correctly.",
+            "covered": true,
+            "evidence": "The answer claims grouping ensures AND/OR/NOT are evaluated together; page 10 explains that parentheses 'ensur[e] the logical evaluation is performed correctly' when nesting queries."
+          },
+          {
+            "fact": "The source demonstrates grouping conditions with AND and OR inside parentheses.",
+            "covered": true,
+            "evidence": "The answer provides examples like 'project = \"MYPROJECT\" AND (status = \"Resolved\" OR status = \"Closed\")' which match examples on page 9 and page 10 showing AND and OR used inside parentheses."
+          }
+        ],
+        "cited_pages": [
+          9,
+          10
+        ],
+        "citation_pages_retrieved": true
+      },
+      "fact_coverage": {
+        "evaluated": true,
+        "expected_count": 3,
+        "covered_count": 3,
+        "coverage": 1.0,
+        "missing_facts": [],
+        "validation_error": null,
+        "details": [
+          {
+            "fact": "Parentheses group conditions in a JQL query.",
+            "covered": true,
+            "evidence": "The answer states 'Use parentheses to group sets of conditions...' and the retrieved pages (page 9) explicitly show 'Using Parentheses Group conditions for clarity and precision' with example queries using parentheses."
+          },
+          {
+            "fact": "Grouping conditions helps ensure logical evaluation is performed correctly.",
+            "covered": true,
+            "evidence": "The answer claims grouping ensures AND/OR/NOT are evaluated together; page 10 explains that parentheses 'ensur[e] the logical evaluation is performed correctly' when nesting queries."
+          },
+          {
+            "fact": "The source demonstrates grouping conditions with AND and OR inside parentheses.",
+            "covered": true,
+            "evidence": "The answer provides examples like 'project = \"MYPROJECT\" AND (status = \"Resolved\" OR status = \"Closed\")' which match examples on page 9 and page 10 showing AND and OR used inside parentheses."
+          }
+        ]
+      }
+    },
+    {
+      "id": "q08",
+      "type": "near_duplicate",
+      "question": "How do I search using relative dates like the last few days?",
+      "expected_answerable": true,
+      "gold_pages": [
+        11
+      ],
+      "expected_facts": [
+        "Relative date queries can use startOfWeek(-1) and endOfWeek(-1) to search for issues created during the previous week.",
+        "The query due >= now() AND due <= now(4d) searches for issues due within the next four days.",
+        "The now() function represents the current timestamp."
+      ],
+      "answer": "You can use JQL date/time functions with relative offsets (days = d, hours = h, etc.) to find issues from the “last N days.” Key approaches in the provided docs:\n\n- Use startOfDay() with a negative day offset to get the start of N days ago:\n  - Example (find issues created since the start of the day seven days ago):\n    created >= startOfDay(-7d) [page 12] and created >= startOfDay() example pattern [page 5].  \n    (page 12 shows the use of startOfDay(-7d); page 5 shows the created >= startOfDay() pattern.)\n\n- Use now() with a negative offset to compare timestamps relative to the current moment:\n  - Pattern shown: updated > now(-2h) (example for the last 2 hours) [page 5].  \n  - By analogy to the shown patterns you can use now(-3d) for three days ago in a comparison such as updated > now(-3d) (the docs demonstrate now() with a negative offset [page 5] and now() with a positive offset now(4d) [page 11]).\n\n- Other related functions for ranges:\n  - startOfWeek(), endOfWeek() can be used with offsets to target whole weeks (the docs show use of startOfWeek(-1) and endOfWeek(-1) for “last week”) [page 11].\n  - startOfMonth()/endOfMonth(), startOfYear()/endOfYear(), startOfDay()/endOfDay() work similarly for those periods [page 12] and are listed with examples for created/due/resolved fields [page 5].\n\n- Example for a forward-range (shown in docs) — “next 4 days”:\n  due >= now() AND due <= now(4d) [page 11].\n\nNotes and sources:\n- now() supports offsets (example: updated > now(-2h)) [page 5] and now(4d) is used in the docs to add four days [page 11].  \n- startOfDay(-7d) is explicitly mentioned as “start of the day, seven days ago” [page 12].  \n- Examples combining field comparisons with the startOf... functions are shown (e.g., created >= startOfDay()) [page 5] and combining with other criteria is supported (e.g., project = \"MYPROJECT\" AND status = \"Open\" AND created >= startOfMonth()) [page 12].\n\nIf you want a specific example for “last 3 days” based only on the documented pieces above, you can use either:\n- created >= startOfDay(-3d) (uses the startOfDay(-Nd) pattern shown on page 12 and the created >= startOfDay() pattern on page 5), or\n- updated > now(-3d) (uses the now() offset pattern shown on page 5).",
+      "retrieved_page_ranking": [
+        11,
+        12,
+        5
+      ],
+      "retrieved_pages": [
+        5,
+        11,
+        12
+      ],
+      "verdict": {
+        "grounded": true,
+        "relevant": true,
+        "appropriately_refused": null,
+        "citation_supported": true,
+        "issues": "",
+        "fact_coverage": [
+          {
+            "fact": "Relative date queries can use startOfWeek(-1) and endOfWeek(-1) to search for issues created during the previous week.",
+            "covered": true,
+            "evidence": "The answer explicitly states startOfWeek() and endOfWeek() can be used with offsets and cites the docs showing startOfWeek(-1) and endOfWeek(-1) for \"last week\"; the retrieved context (page 11) shows created >= startOfWeek(-1) AND created <= endOfWeek(-1)."
+          },
+          {
+            "fact": "The query due >= now() AND due <= now(4d) searches for issues due within the next four days.",
+            "covered": true,
+            "evidence": "The answer gives the forward-range example due >= now() AND due <= now(4d) and cites page 11; the retrieved context (page 11) contains that exact query and explains now(4d) adds four days to the current date."
+          },
+          {
+            "fact": "The now() function represents the current timestamp.",
+            "covered": true,
+            "evidence": "The answer describes now() as the current timestamp and references examples using now() with offsets; the retrieved context (page 11) explicitly states the now() function represents the current timestamp."
+          }
+        ],
+        "cited_pages": [
+          5,
+          11,
+          12
+        ],
+        "citation_pages_retrieved": true
+      },
+      "fact_coverage": {
+        "evaluated": true,
+        "expected_count": 3,
+        "covered_count": 3,
+        "coverage": 1.0,
+        "missing_facts": [],
+        "validation_error": null,
+        "details": [
+          {
+            "fact": "Relative date queries can use startOfWeek(-1) and endOfWeek(-1) to search for issues created during the previous week.",
+            "covered": true,
+            "evidence": "The answer explicitly states startOfWeek() and endOfWeek() can be used with offsets and cites the docs showing startOfWeek(-1) and endOfWeek(-1) for \"last week\"; the retrieved context (page 11) shows created >= startOfWeek(-1) AND created <= endOfWeek(-1)."
+          },
+          {
+            "fact": "The query due >= now() AND due <= now(4d) searches for issues due within the next four days.",
+            "covered": true,
+            "evidence": "The answer gives the forward-range example due >= now() AND due <= now(4d) and cites page 11; the retrieved context (page 11) contains that exact query and explains now(4d) adds four days to the current date."
+          },
+          {
+            "fact": "The now() function represents the current timestamp.",
+            "covered": true,
+            "evidence": "The answer describes now() as the current timestamp and references examples using now() with offsets; the retrieved context (page 11) explicitly states the now() function represents the current timestamp."
+          }
+        ]
+      }
+    },
+    {
+      "id": "q09",
+      "type": "near_duplicate",
+      "question": "How do I use a wildcard to match a single character?",
+      "expected_answerable": true,
+      "gold_pages": [
+        13
+      ],
+      "expected_facts": [
+        "The question mark (?) wildcard represents a single character.",
+        "The example summary ~ \"te?t\" can match words such as text and test."
+      ],
+      "answer": "Use the ? character as a single-character wildcard in JQL. It replaces exactly one character in a search term and is used in text fields (summary, description, comments). Example from the documentation:\n\nsummary ~ \"te?t\"\n\nThis will match summaries containing \"text\", \"test\", or any other single-character variation that fits the pattern [page 13]. (Wildcards apply to text fields such as summaries, descriptions, and comments [pages 13–14].)",
+      "retrieved_page_ranking": [
+        13,
+        14,
+        6
+      ],
+      "retrieved_pages": [
+        6,
+        13,
+        14
+      ],
+      "verdict": {
+        "grounded": true,
+        "relevant": true,
+        "appropriately_refused": null,
+        "citation_supported": true,
+        "issues": "",
+        "fact_coverage": [
+          {
+            "fact": "The question mark (?) wildcard represents a single character.",
+            "covered": true,
+            "evidence": "The answer states '? character as a single-character wildcard' and the retrieved context (page 13) explicitly says 'The single character wildcard search uses the ? symbol to replace a single character in a search term.'"
+          },
+          {
+            "fact": "The example summary ~ \"te?t\" can match words such as text and test.",
+            "covered": true,
+            "evidence": "The answer gives the example 'summary ~ \"te?t\"' and states it matches 'text' and 'test'; the retrieved context (page 13) provides the same example and outcome."
+          }
+        ],
+        "cited_pages": [
+          13,
+          14
+        ],
+        "citation_pages_retrieved": true
+      },
+      "fact_coverage": {
+        "evaluated": true,
+        "expected_count": 2,
+        "covered_count": 2,
+        "coverage": 1.0,
+        "missing_facts": [],
+        "validation_error": null,
+        "details": [
+          {
+            "fact": "The question mark (?) wildcard represents a single character.",
+            "covered": true,
+            "evidence": "The answer states '? character as a single-character wildcard' and the retrieved context (page 13) explicitly says 'The single character wildcard search uses the ? symbol to replace a single character in a search term.'"
+          },
+          {
+            "fact": "The example summary ~ \"te?t\" can match words such as text and test.",
+            "covered": true,
+            "evidence": "The answer gives the example 'summary ~ \"te?t\"' and states it matches 'text' and 'test'; the retrieved context (page 13) provides the same example and outcome."
+          }
+        ]
+      }
+    },
+    {
+      "id": "q10",
+      "type": "near_duplicate",
+      "question": "What should I watch out for when using wildcard searches?",
+      "expected_answerable": true,
+      "gold_pages": [
+        14
+      ],
+      "expected_facts": [
+        "Leading wildcards such as *config can significantly affect Jira performance.",
+        "Wildcards can return more results than necessary and reduce search precision.",
+        "The source recommends using wildcards sparingly and avoiding leading wildcards when possible."
+      ],
+      "answer": "Watch for these issues when using wildcards:\n\n- Performance: Wildcards—especially leading wildcards such as *config—can significantly slow JQL queries. Use them sparingly and avoid leading wildcards where possible [page 14].  \n- Precision / too many results: Wildcards broaden matches and can return more (irrelevant) issues than you expect, so balance breadth and precision [page 14].  \n- Field scope: Wildcards are intended for text fields (examples: summaries, descriptions, comments). Example usages from the docs: summary ~ \"te?t\" and summary ~ \"config*\" and description ~ \"PROJ*\" and comment ~ \"bug*\" [page 13].  \n- JQL vs. regex / labels: Standard JQL does not support full regular expressions natively; plugins like ScriptRunner provide regex-like functions and enable wildcard-style searches for labels (which standard JQL cannot do) [page 6].",
+      "retrieved_page_ranking": [
+        14,
+        13,
+        6
+      ],
+      "retrieved_pages": [
+        6,
+        13,
+        14
+      ],
+      "verdict": {
+        "grounded": true,
+        "relevant": true,
+        "appropriately_refused": null,
+        "citation_supported": true,
+        "issues": "",
+        "fact_coverage": [
+          {
+            "fact": "Leading wildcards such as *config can significantly affect Jira performance.",
+            "covered": true,
+            "evidence": "The answer explicitly states that leading wildcards such as *config can significantly slow JQL queries and cites page 14, which discusses performance impacts of leading wildcards."
+          },
+          {
+            "fact": "Wildcards can return more results than necessary and reduce search precision.",
+            "covered": true,
+            "evidence": "The answer notes that wildcards broaden matches and can return more (irrelevant) issues than expected, matching page 14's discussion that wildcards may return more results and reduce precision."
+          },
+          {
+            "fact": "The source recommends using wildcards sparingly and avoiding leading wildcards when possible.",
+            "covered": true,
+            "evidence": "The answer advises using wildcards sparingly and avoiding leading wildcards where possible, which directly reflects the recommendation on page 14."
+          }
+        ],
+        "cited_pages": [
+          6,
+          13,
+          14
+        ],
+        "citation_pages_retrieved": true
+      },
+      "fact_coverage": {
+        "evaluated": true,
+        "expected_count": 3,
+        "covered_count": 3,
+        "coverage": 1.0,
+        "missing_facts": [],
+        "validation_error": null,
+        "details": [
+          {
+            "fact": "Leading wildcards such as *config can significantly affect Jira performance.",
+            "covered": true,
+            "evidence": "The answer explicitly states that leading wildcards such as *config can significantly slow JQL queries and cites page 14, which discusses performance impacts of leading wildcards."
+          },
+          {
+            "fact": "Wildcards can return more results than necessary and reduce search precision.",
+            "covered": true,
+            "evidence": "The answer notes that wildcards broaden matches and can return more (irrelevant) issues than expected, matching page 14's discussion that wildcards may return more results and reduce precision."
+          },
+          {
+            "fact": "The source recommends using wildcards sparingly and avoiding leading wildcards when possible.",
+            "covered": true,
+            "evidence": "The answer advises using wildcards sparingly and avoiding leading wildcards where possible, which directly reflects the recommendation on page 14."
+          }
+        ]
+      }
+    },
+    {
+      "id": "q11",
+      "type": "multi_page",
+      "question": "What operators are available in JQL?",
+      "expected_answerable": true,
+      "gold_pages": [
+        3,
+        4
+      ],
+      "expected_facts": [
+        "Comparison operators include =, !=, >, <, >=, and <=.",
+        "IN and NOT IN match or exclude values from a specified list.",
+        "IS and IS NOT are used for fields with empty or specified states.",
+        "The tilde (~) and not-tilde (!~) operators support text search and exclusion.",
+        "WAS-related operators support searches based on previous field values."
+      ],
+      "answer": "The context lists these JQL operators and what they do:\n\n- Equals (=) — finds issues where a field exactly matches a value. Example: status = \"Done\" [page 3][page 2].  \n- Not equal (!=) — finds issues where a field does not match the value. Example: priority != \"Low\" [page 3][page 2].  \n- IN — tests whether a field’s value is in a specified list. Example: status IN (\"Open\", \"In Progress\") [page 3].  \n- NOT IN — excludes values found in a specified list. Example: type NOT IN (\"Task\", \"Sub-task\") [page 3].  \n- Greater than (>) and Less than (<) — numeric/date comparisons. Example: created > \"-5d\" finds issues created in the last 5 days [page 3].  \n- Greater than or equal (>=) and Less than or equal (<=) — comparisons that include the boundary. Example: due <= \"2024-03-31\" [page 3].  \n- IS / IS NOT — used for fields that can be empty or have special states (e.g., EMPTY). Example: assignee IS EMPTY and fixVersion IS NOT EMPTY [page 4].  \n- Tilde (~) — text “contains” search for text fields. Example: summary ~ \"bug\" [page 4].  \n- Negated tilde (!~) — finds text fields that do not contain the specified term. Example: summary !~ \"Task\" [page 4].  \n- WAS and WAS IN — find issues based on previous values (historical searches). Example: status WAS \"Resolved\" AND status WAS IN (\"In Progress\", \"Resolved\") DURING (\"2022-01-01\") [page 4].  \n- WAS NOT and WAS NOT IN — exclude issues that previously had specified values or were in specified lists (historical exclusion). Example: status WAS NOT \"Closed\" AND status WAS NOT IN (\"Resolved\", \"Done\") DURING (\"2022-01-01\") [page 4].\n\n(Examples above are reproduced exactly from the source pages cited.)",
+      "retrieved_page_ranking": [
+        3,
+        4,
+        2
+      ],
+      "retrieved_pages": [
+        2,
+        3,
+        4
+      ],
+      "verdict": {
+        "grounded": true,
+        "relevant": true,
+        "appropriately_refused": null,
+        "citation_supported": true,
+        "issues": "",
+        "fact_coverage": [
+          {
+            "fact": "Comparison operators include =, !=, >, <, >=, and <=.",
+            "covered": true,
+            "evidence": "The answer lists Equals (=), Not equal (!=), Greater than (>) and Less than (<), and Greater than or equal (>=) and Less than or equal (<=); these operators and examples appear on pages 2 and 3 of the retrieved context."
+          },
+          {
+            "fact": "IN and NOT IN match or exclude values from a specified list.",
+            "covered": true,
+            "evidence": "The answer describes IN and NOT IN with examples (status IN (...) and type NOT IN (...)); the retrieved context on page 3 documents these operators and their list-based behavior."
+          },
+          {
+            "fact": "IS and IS NOT are used for fields with empty or specified states.",
+            "covered": true,
+            "evidence": "The answer includes IS / IS NOT with examples (assignee IS EMPTY, fixVersion IS NOT EMPTY); page 4 of the context explains these operators for empty/special states."
+          },
+          {
+            "fact": "The tilde (~) and not-tilde (!~) operators support text search and exclusion.",
+            "covered": true,
+            "evidence": "The answer lists ~ and !~ as text 'contains' and exclusion searches with examples (summary ~ 'bug', summary !~ 'Task'); page 4 contains identical descriptions."
+          },
+          {
+            "fact": "WAS-related operators support searches based on previous field values.",
+            "covered": true,
+            "evidence": "The answer describes WAS, WAS IN, WAS NOT, and WAS NOT IN for historical searches and provides examples; pages 4 of the context explain these operators for previous values and time-based queries."
+          }
+        ],
+        "cited_pages": [
+          2,
+          3,
+          4
+        ],
+        "citation_pages_retrieved": true
+      },
+      "fact_coverage": {
+        "evaluated": true,
+        "expected_count": 5,
+        "covered_count": 5,
+        "coverage": 1.0,
+        "missing_facts": [],
+        "validation_error": null,
+        "details": [
+          {
+            "fact": "Comparison operators include =, !=, >, <, >=, and <=.",
+            "covered": true,
+            "evidence": "The answer lists Equals (=), Not equal (!=), Greater than (>) and Less than (<), and Greater than or equal (>=) and Less than or equal (<=); these operators and examples appear on pages 2 and 3 of the retrieved context."
+          },
+          {
+            "fact": "IN and NOT IN match or exclude values from a specified list.",
+            "covered": true,
+            "evidence": "The answer describes IN and NOT IN with examples (status IN (...) and type NOT IN (...)); the retrieved context on page 3 documents these operators and their list-based behavior."
+          },
+          {
+            "fact": "IS and IS NOT are used for fields with empty or specified states.",
+            "covered": true,
+            "evidence": "The answer includes IS / IS NOT with examples (assignee IS EMPTY, fixVersion IS NOT EMPTY); page 4 of the context explains these operators for empty/special states."
+          },
+          {
+            "fact": "The tilde (~) and not-tilde (!~) operators support text search and exclusion.",
+            "covered": true,
+            "evidence": "The answer lists ~ and !~ as text 'contains' and exclusion searches with examples (summary ~ 'bug', summary !~ 'Task'); page 4 contains identical descriptions."
+          },
+          {
+            "fact": "WAS-related operators support searches based on previous field values.",
+            "covered": true,
+            "evidence": "The answer describes WAS, WAS IN, WAS NOT, and WAS NOT IN for historical searches and provides examples; pages 4 of the context explain these operators for previous values and time-based queries."
+          }
+        ]
+      }
+    },
+    {
+      "id": "q12",
+      "type": "near_duplicate",
+      "question": "Which operator works for fields that can be empty?",
+      "expected_answerable": true,
+      "gold_pages": [
+        4
+      ],
+      "expected_facts": [
+        "The IS operator can be used to search for fields that are empty.",
+        "The query assignee IS EMPTY finds issues that are not assigned to anyone.",
+        "IS NOT can find issues where a field is not empty."
+      ],
+      "answer": "The IS operator. It is used for fields that can be empty (null) or have a specific state like EMPTY [page 4]. Example from the source: assignee IS EMPTY (finds issues that are not assigned to anyone) [page 4]. The complementary operator IS NOT is the opposite (e.g., fixVersion IS NOT EMPTY finds issues that have a fix version specified) [page 4].",
+      "retrieved_page_ranking": [
+        4,
+        3,
+        2
+      ],
+      "retrieved_pages": [
+        2,
+        3,
+        4
+      ],
+      "verdict": {
+        "grounded": true,
+        "relevant": true,
+        "appropriately_refused": null,
+        "citation_supported": true,
+        "issues": "",
+        "fact_coverage": [
+          {
+            "fact": "The IS operator can be used to search for fields that are empty.",
+            "covered": true,
+            "evidence": "The answer states 'The IS operator. It is used for fields that can be empty (null)...' which matches page 4: 'Used for fields that can be empty (null) or have a specific state like EMPTY. IS'."
+          },
+          {
+            "fact": "The query assignee IS EMPTY finds issues that are not assigned to anyone.",
+            "covered": true,
+            "evidence": "The answer gives the example 'assignee IS EMPTY (finds issues that are not assigned to anyone)' which directly matches page 4: 'assignee IS EMPTY Finds issues that are not assigned to anyone.'"
+          },
+          {
+            "fact": "IS NOT can find issues where a field is not empty.",
+            "covered": true,
+            "evidence": "The answer notes 'The complementary operator IS NOT ... e.g., fixVersion IS NOT EMPTY finds issues that have a fix version specified,' matching page 4: 'The opposite of 'IS'... IS NOT fixVersion IS NOT EMPTY Finds issues that have a fix version specified.'"
+          }
+        ],
+        "cited_pages": [
+          4
+        ],
+        "citation_pages_retrieved": true
+      },
+      "fact_coverage": {
+        "evaluated": true,
+        "expected_count": 3,
+        "covered_count": 3,
+        "coverage": 1.0,
+        "missing_facts": [],
+        "validation_error": null,
+        "details": [
+          {
+            "fact": "The IS operator can be used to search for fields that are empty.",
+            "covered": true,
+            "evidence": "The answer states 'The IS operator. It is used for fields that can be empty (null)...' which matches page 4: 'Used for fields that can be empty (null) or have a specific state like EMPTY. IS'."
+          },
+          {
+            "fact": "The query assignee IS EMPTY finds issues that are not assigned to anyone.",
+            "covered": true,
+            "evidence": "The answer gives the example 'assignee IS EMPTY (finds issues that are not assigned to anyone)' which directly matches page 4: 'assignee IS EMPTY Finds issues that are not assigned to anyone.'"
+          },
+          {
+            "fact": "IS NOT can find issues where a field is not empty.",
+            "covered": true,
+            "evidence": "The answer notes 'The complementary operator IS NOT ... e.g., fixVersion IS NOT EMPTY finds issues that have a fix version specified,' matching page 4: 'The opposite of 'IS'... IS NOT fixVersion IS NOT EMPTY Finds issues that have a fix version specified.'"
+          }
+        ]
+      }
+    },
+    {
+      "id": "q13",
+      "type": "lookup",
+      "question": "How long is the live practical workshop?",
+      "expected_answerable": true,
+      "gold_pages": [
+        15
+      ],
+      "expected_facts": [
+        "The advertised live practical workshop lasts 7 hours."
+      ],
+      "answer": "The live practical workshop is 7 hours long. [page 15]",
+      "retrieved_page_ranking": [
+        15,
+        11,
+        5
+      ],
+      "retrieved_pages": [
+        5,
+        11,
+        15
+      ],
+      "verdict": {
+        "grounded": true,
+        "relevant": true,
+        "appropriately_refused": null,
+        "citation_supported": true,
+        "issues": "",
+        "fact_coverage": [
+          {
+            "fact": "The advertised live practical workshop lasts 7 hours.",
+            "covered": true,
+            "evidence": "Page 15 explicitly states '7 Hours Live Practical Workshop', which supports the claim that the workshop is 7 hours long."
+          }
+        ],
+        "cited_pages": [
+          15
+        ],
+        "citation_pages_retrieved": true
+      },
+      "fact_coverage": {
+        "evaluated": true,
+        "expected_count": 1,
+        "covered_count": 1,
+        "coverage": 1.0,
+        "missing_facts": [],
+        "validation_error": null,
+        "details": [
+          {
+            "fact": "The advertised live practical workshop lasts 7 hours.",
+            "covered": true,
+            "evidence": "Page 15 explicitly states '7 Hours Live Practical Workshop', which supports the claim that the workshop is 7 hours long."
+          }
+        ]
+      }
+    },
+    {
+      "id": "q14",
+      "type": "trap",
+      "question": "What is the capital of France?",
+      "expected_answerable": false,
+      "gold_pages": [],
+      "expected_facts": [],
+      "answer": "I don't have enough information in the provided context to answer that. The documents you supplied discuss JQL (Jira Query Language) basics [page 2], advanced date/time searches [page 12], and wildcard text searches [page 13], and do not mention countries or capitals. If you can provide a source that includes information about France, I can answer from that.",
+      "retrieved_page_ranking": [
+        13,
+        12,
+        2
+      ],
+      "retrieved_pages": [
+        2,
+        12,
+        13
+      ],
+      "verdict": {
+        "grounded": true,
+        "relevant": true,
+        "appropriately_refused": true,
+        "citation_supported": true,
+        "issues": "",
+        "fact_coverage": [],
+        "cited_pages": [
+          2,
+          12,
+          13
+        ],
+        "citation_pages_retrieved": true
+      },
+      "fact_coverage": {
+        "evaluated": false,
+        "expected_count": 0,
+        "covered_count": 0,
+        "coverage": null,
+        "missing_facts": [],
+        "validation_error": null
+      }
+    },
+    {
+      "id": "q15",
+      "type": "trap",
+      "question": "Who is the CEO of Atlassian?",
+      "expected_answerable": false,
+      "gold_pages": [],
+      "expected_facts": [],
+      "answer": "I don’t have enough information in the provided context to answer that. The supplied pages discuss JQL and Jira query examples (pages 8, 9, and 15) but do not mention Atlassian’s CEO or any executive names [page 8][page 9][page 15].",
+      "retrieved_page_ranking": [
+        15,
+        9,
+        8
+      ],
+      "retrieved_pages": [
+        8,
+        9,
+        15
+      ],
+      "verdict": {
+        "grounded": true,
+        "relevant": true,
+        "appropriately_refused": true,
+        "citation_supported": true,
+        "issues": "",
+        "fact_coverage": [],
+        "cited_pages": [
+          8,
+          9,
+          15
+        ],
+        "citation_pages_retrieved": true
+      },
+      "fact_coverage": {
+        "evaluated": false,
+        "expected_count": 0,
+        "covered_count": 0,
+        "coverage": null,
+        "missing_facts": [],
+        "validation_error": null
+      }
+    },
+    {
+      "id": "q16",
+      "type": "lookup",
+      "question": "What are the three basic components of a JQL query, and what does each represent?",
+      "expected_answerable": true,
+      "gold_pages": [
+        2
+      ],
+      "expected_facts": [
+        "A basic JQL query uses fields, operators, and values.",
+        "Fields represent issue attributes, operators relate fields to values, and values specify the criteria being searched for."
+      ],
+      "answer": "The three basic components are: \n\n- Fields — the issue attributes you search on (e.g., status, assignee, priority). Fields identify which part of an issue to evaluate [page 2].  \n- Operators — the symbol or word that relates the field to the value and performs the comparison (e.g., =, !=, IN, NOT IN, <, >) [page 2].  \n- Values — the specific criteria you’re matching (can be text, numbers, or Jira identifiers), e.g., a status name like \"Done\" [page 2].\n\nExample (from the docs): status = \"Done\" (finds all issues that are marked as Done) [page 3].",
+      "retrieved_page_ranking": [
+        2,
+        3,
+        4
+      ],
+      "retrieved_pages": [
+        2,
+        3,
+        4
+      ],
+      "verdict": {
+        "grounded": true,
+        "relevant": true,
+        "appropriately_refused": null,
+        "citation_supported": true,
+        "issues": "",
+        "fact_coverage": [
+          {
+            "fact": "A basic JQL query uses fields, operators, and values.",
+            "covered": true,
+            "evidence": "The answer explicitly lists 'Fields', 'Operators', and 'Values' as the three basic components; page 2 of the retrieved context similarly states that JQL's basic syntax comprises fields, operators, and values."
+          },
+          {
+            "fact": "Fields represent issue attributes, operators relate fields to values, and values specify the criteria being searched for.",
+            "covered": true,
+            "evidence": "The answer defines Fields as issue attributes, Operators as relating the field to the value and performing comparisons, and Values as the specific criteria; page 2 of the context provides the same descriptions (fields = attributes, operators = relate field to value for comparisons, values = criteria such as text, numbers, or identifiers)."
+          }
+        ],
+        "cited_pages": [
+          2,
+          3
+        ],
+        "citation_pages_retrieved": true
+      },
+      "fact_coverage": {
+        "evaluated": true,
+        "expected_count": 2,
+        "covered_count": 2,
+        "coverage": 1.0,
+        "missing_facts": [],
+        "validation_error": null,
+        "details": [
+          {
+            "fact": "A basic JQL query uses fields, operators, and values.",
+            "covered": true,
+            "evidence": "The answer explicitly lists 'Fields', 'Operators', and 'Values' as the three basic components; page 2 of the retrieved context similarly states that JQL's basic syntax comprises fields, operators, and values."
+          },
+          {
+            "fact": "Fields represent issue attributes, operators relate fields to values, and values specify the criteria being searched for.",
+            "covered": true,
+            "evidence": "The answer defines Fields as issue attributes, Operators as relating the field to the value and performing comparisons, and Values as the specific criteria; page 2 of the context provides the same descriptions (fields = attributes, operators = relate field to value for comparisons, values = criteria such as text, numbers, or identifiers)."
+          }
+        ]
+      }
+    },
+    {
+      "id": "q17",
+      "type": "paraphrase",
+      "question": "When comparing dates or numbers in JQL, what is the difference between > and >=, or between < and <=?",
+      "expected_answerable": true,
+      "gold_pages": [
+        3
+      ],
+      "expected_facts": [
+        "The > and < operators perform greater-than and less-than comparisons.",
+        "The >= and <= operators include the boundary value, unlike > and <."
+      ],
+      "answer": "In JQL for numbers and dates, > and < are strict comparisons (they exclude the boundary), while >= and <= include the boundary value. These operators are used for numerical and date comparisons [page 3].\n\nExamples from the source:\n- created > \"-5d\" (uses > to find issues created in the last 5 days) [page 3].\n- due <= \"2024-03-31\" (uses <= to find issues due on or before March 31, 2024) [page 3].",
+      "retrieved_page_ranking": [
+        3,
+        12,
+        11
+      ],
+      "retrieved_pages": [
+        3,
+        11,
+        12
+      ],
+      "verdict": {
+        "grounded": true,
+        "relevant": true,
+        "appropriately_refused": null,
+        "citation_supported": true,
+        "issues": "",
+        "fact_coverage": [
+          {
+            "fact": "The > and < operators perform greater-than and less-than comparisons.",
+            "covered": true,
+            "evidence": "The answer states > and < are strict comparisons for numbers and dates; the context (page 3) describes 'Greater than, Less than' operators used for numerical and date comparisons and shows examples like created > \"-5d\"."
+          },
+          {
+            "fact": "The >= and <= operators include the boundary value, unlike > and <.",
+            "covered": true,
+            "evidence": "The answer says >= and <= include the boundary value; the context (page 3) explicitly states 'Similar to \">\" and \"<\", but include the boundary value' and gives the example due <= \"2024-03-31\"."
+          }
+        ],
+        "cited_pages": [
+          3
+        ],
+        "citation_pages_retrieved": true
+      },
+      "fact_coverage": {
+        "evaluated": true,
+        "expected_count": 2,
+        "covered_count": 2,
+        "coverage": 1.0,
+        "missing_facts": [],
+        "validation_error": null,
+        "details": [
+          {
+            "fact": "The > and < operators perform greater-than and less-than comparisons.",
+            "covered": true,
+            "evidence": "The answer states > and < are strict comparisons for numbers and dates; the context (page 3) describes 'Greater than, Less than' operators used for numerical and date comparisons and shows examples like created > \"-5d\"."
+          },
+          {
+            "fact": "The >= and <= operators include the boundary value, unlike > and <.",
+            "covered": true,
+            "evidence": "The answer says >= and <= include the boundary value; the context (page 3) explicitly states 'Similar to \">\" and \"<\", but include the boundary value' and gives the example due <= \"2024-03-31\"."
+          }
+        ]
+      }
+    },
+    {
+      "id": "q18",
+      "type": "lookup",
+      "question": "How can I find issues whose summary does not contain the word Task?",
+      "expected_answerable": true,
+      "gold_pages": [
+        4
+      ],
+      "expected_facts": [
+        "The !~ operator searches for text fields that do not contain the specified search term.",
+        "The source example is summary !~ \"Task\"."
+      ],
+      "answer": "Use the \"not contains\" text operator !~ on the summary field. This operator finds issues where a text field does not contain the given term (used for text fields) [page 4].\n\nExample from the source:\nsummary !~ \"Task\" [page 4]",
+      "retrieved_page_ranking": [
+        4,
+        13,
+        2
+      ],
+      "retrieved_pages": [
+        2,
+        4,
+        13
+      ],
+      "verdict": {
+        "grounded": true,
+        "relevant": true,
+        "appropriately_refused": null,
+        "citation_supported": true,
+        "issues": "",
+        "fact_coverage": [
+          {
+            "fact": "The !~ operator searches for text fields that do not contain the specified search term.",
+            "covered": true,
+            "evidence": "Page 4 explicitly describes the !~ operator as returning issues where the text field does not contain the specified search term and notes it is used for text fields."
+          },
+          {
+            "fact": "The source example is summary !~ \"Task\".",
+            "covered": true,
+            "evidence": "Page 4 includes the exact example 'summary !~ \"Task\"' demonstrating the operator applied to the summary field."
+          }
+        ],
+        "cited_pages": [
+          4
+        ],
+        "citation_pages_retrieved": true
+      },
+      "fact_coverage": {
+        "evaluated": true,
+        "expected_count": 2,
+        "covered_count": 2,
+        "coverage": 1.0,
+        "missing_facts": [],
+        "validation_error": null,
+        "details": [
+          {
+            "fact": "The !~ operator searches for text fields that do not contain the specified search term.",
+            "covered": true,
+            "evidence": "Page 4 explicitly describes the !~ operator as returning issues where the text field does not contain the specified search term and notes it is used for text fields."
+          },
+          {
+            "fact": "The source example is summary !~ \"Task\".",
+            "covered": true,
+            "evidence": "Page 4 includes the exact example 'summary !~ \"Task\"' demonstrating the operator applied to the summary field."
+          }
+        ]
+      }
+    },
+    {
+      "id": "q19",
+      "type": "paraphrase",
+      "question": "How can I use now() to find issues updated in the last two hours?",
+      "expected_answerable": true,
+      "gold_pages": [
+        5
+      ],
+      "expected_facts": [
+        "The now() function represents the current timestamp.",
+        "The source gives updated > now(-2h) as a query for issues updated in the last two hours."
+      ],
+      "answer": "Use now() with a negative two-hour offset. Example query:\n\nupdated > now(-2h)\n\nThis finds issues that were updated in the last two hours [page 5]. The now() function represents the current timestamp, so now(-2h) is two hours before now [page 11].",
+      "retrieved_page_ranking": [
+        5,
+        11,
+        12
+      ],
+      "retrieved_pages": [
+        5,
+        11,
+        12
+      ],
+      "verdict": {
+        "grounded": true,
+        "relevant": true,
+        "appropriately_refused": null,
+        "citation_supported": true,
+        "issues": "",
+        "fact_coverage": [
+          {
+            "fact": "The now() function represents the current timestamp.",
+            "covered": true,
+            "evidence": "The answer states that now() represents the current timestamp and cites page 11, which explicitly says 'The now() function represents the current timestamp.'"
+          },
+          {
+            "fact": "The source gives updated > now(-2h) as a query for issues updated in the last two hours.",
+            "covered": true,
+            "evidence": "The answer shows 'updated > now(-2h)' and cites page 5; page 5 lists that exact query and notes it 'Finds issues that were updated in the last 2 hours.'"
+          }
+        ],
+        "cited_pages": [
+          5,
+          11
+        ],
+        "citation_pages_retrieved": true
+      },
+      "fact_coverage": {
+        "evaluated": true,
+        "expected_count": 2,
+        "covered_count": 2,
+        "coverage": 1.0,
+        "missing_facts": [],
+        "validation_error": null,
+        "details": [
+          {
+            "fact": "The now() function represents the current timestamp.",
+            "covered": true,
+            "evidence": "The answer states that now() represents the current timestamp and cites page 11, which explicitly says 'The now() function represents the current timestamp.'"
+          },
+          {
+            "fact": "The source gives updated > now(-2h) as a query for issues updated in the last two hours.",
+            "covered": true,
+            "evidence": "The answer shows 'updated > now(-2h)' and cites page 5; page 5 lists that exact query and notes it 'Finds issues that were updated in the last 2 hours.'"
+          }
+        ]
+      }
+    },
+    {
+      "id": "q20",
+      "type": "lookup",
+      "question": "Which JQL operators can help identify issues that previously had particular status values during a specified time period?",
+      "expected_answerable": true,
+      "gold_pages": [
+        4
+      ],
+      "expected_facts": [
+        "WAS and related operators support searches based on previous field values.",
+        "WAS IN can search for previous values from a specified list.",
+        "The source demonstrates combining historical status operators with DURING to specify a timeframe."
+      ],
+      "answer": "Use the historical (\"was\") operators: WAS and WAS IN. These search for a field’s previous values and can be combined with a time period (DURING) to find issues that held particular status values at a specified time [page 4].\n\n- WAS — finds issues that were previously in a given value (e.g., previously in \"Resolved\") [page 4].\n- WAS IN — finds issues that were in any of a specified list of values during a timeframe [page 4].\n\nDocumented example:\nstatus WAS \"Resolved\" AND status WAS IN (\"In Progress\", \"Resolved\") DURING (\"2022-01-01\") [page 4]\n\nFor excluding previous values, the complementary operators WAS NOT and WAS NOT IN are available (also usable with DURING) — e.g.:\nstatus WAS NOT \"Closed\" AND status WAS NOT IN (\"Resolved\", \"Done\") DURING (\"2022-01-01\") [page 4]",
+      "retrieved_page_ranking": [
+        4,
+        3,
+        2
+      ],
+      "retrieved_pages": [
+        2,
+        3,
+        4
+      ],
+      "verdict": {
+        "grounded": true,
+        "relevant": true,
+        "appropriately_refused": null,
+        "citation_supported": true,
+        "issues": "",
+        "fact_coverage": [
+          {
+            "fact": "WAS and related operators support searches based on previous field values.",
+            "covered": true,
+            "evidence": "The answer states that WAS and WAS IN search for a field’s previous values; the retrieved context (page 4) explicitly describes these operators as used to search based on a field's previous values."
+          },
+          {
+            "fact": "WAS IN can search for previous values from a specified list.",
+            "covered": true,
+            "evidence": "The answer explains WAS IN finds issues that were in any of a specified list of values during a timeframe; page 4 shows the same wording and example using WAS IN (\"In Progress\", \"Resolved\")."
+          },
+          {
+            "fact": "The source demonstrates combining historical status operators with DURING to specify a timeframe.",
+            "covered": true,
+            "evidence": "The answer shows using DURING with WAS/WAS IN and provides an example; page 4 includes the example 'status WAS \"Resolved\" AND status WAS IN (\"In Progress\", \"Resolved\") DURING (\"2022-01-01\").'"
+          }
+        ],
+        "cited_pages": [
+          4
+        ],
+        "citation_pages_retrieved": true
+      },
+      "fact_coverage": {
+        "evaluated": true,
+        "expected_count": 3,
+        "covered_count": 3,
+        "coverage": 1.0,
+        "missing_facts": [],
+        "validation_error": null,
+        "details": [
+          {
+            "fact": "WAS and related operators support searches based on previous field values.",
+            "covered": true,
+            "evidence": "The answer states that WAS and WAS IN search for a field’s previous values; the retrieved context (page 4) explicitly describes these operators as used to search based on a field's previous values."
+          },
+          {
+            "fact": "WAS IN can search for previous values from a specified list.",
+            "covered": true,
+            "evidence": "The answer explains WAS IN finds issues that were in any of a specified list of values during a timeframe; page 4 shows the same wording and example using WAS IN (\"In Progress\", \"Resolved\")."
+          },
+          {
+            "fact": "The source demonstrates combining historical status operators with DURING to specify a timeframe.",
+            "covered": true,
+            "evidence": "The answer shows using DURING with WAS/WAS IN and provides an example; page 4 includes the example 'status WAS \"Resolved\" AND status WAS IN (\"In Progress\", \"Resolved\") DURING (\"2022-01-01\").'"
+          }
+        ]
+      }
+    },
+    {
+      "id": "q21",
+      "type": "lookup",
+      "question": "What date and time format does the PDF show for finding issues created at 3 PM on March 5, 2024?",
+      "expected_answerable": true,
+      "gold_pages": [
+        11
+      ],
+      "expected_facts": [
+        "The source uses YYYY/MM/DD HH:mm for date-and-time searches.",
+        "The example query is created = \"2024/03/05 15:00\"."
+      ],
+      "answer": "The PDF shows the date/time format as YYYY/MM/DD HH:mm and gives the example:\ncreated = \"2024/03/05 15:00\" [page 11].",
+      "retrieved_page_ranking": [
+        11,
+        12,
+        5
+      ],
+      "retrieved_pages": [
+        5,
+        11,
+        12
+      ],
+      "verdict": {
+        "grounded": true,
+        "relevant": true,
+        "appropriately_refused": null,
+        "citation_supported": true,
+        "issues": "",
+        "fact_coverage": [
+          {
+            "fact": "The source uses YYYY/MM/DD HH:mm for date-and-time searches.",
+            "covered": true,
+            "evidence": "Page 11 of the retrieved context states 'For time-specific searches, Jira uses the format YYYY/MM/DD HH:mm', which matches the generated answer."
+          },
+          {
+            "fact": "The example query is created = \"2024/03/05 15:00\".",
+            "covered": true,
+            "evidence": "The retrieved context on page 11 shows the example 'created = \"2024/03/05 15:00\"' and the generated answer reproduces this exact example."
+          }
+        ],
+        "cited_pages": [
+          11
+        ],
+        "citation_pages_retrieved": true
+      },
+      "fact_coverage": {
+        "evaluated": true,
+        "expected_count": 2,
+        "covered_count": 2,
+        "coverage": 1.0,
+        "missing_facts": [],
+        "validation_error": null,
+        "details": [
+          {
+            "fact": "The source uses YYYY/MM/DD HH:mm for date-and-time searches.",
+            "covered": true,
+            "evidence": "Page 11 of the retrieved context states 'For time-specific searches, Jira uses the format YYYY/MM/DD HH:mm', which matches the generated answer."
+          },
+          {
+            "fact": "The example query is created = \"2024/03/05 15:00\".",
+            "covered": true,
+            "evidence": "The retrieved context on page 11 shows the example 'created = \"2024/03/05 15:00\"' and the generated answer reproduces this exact example."
+          }
+        ]
+      }
+    },
+    {
+      "id": "q22",
+      "type": "paraphrase",
+      "question": "How would I search for open issues in MYPROJECT created since the beginning of the current month?",
+      "expected_answerable": true,
+      "gold_pages": [
+        12
+      ],
+      "expected_facts": [
+        "The query combines project = \"MYPROJECT\", status = \"Open\", and created >= startOfMonth().",
+        "startOfMonth() represents the beginning of the current month for this search."
+      ],
+      "answer": "project = \"MYPROJECT\" AND status = \"Open\" AND created >= startOfMonth()\n\nThis query finds all open issues in \"MYPROJECT\" created since the start of the current month (startOfMonth()) [page 12].",
+      "retrieved_page_ranking": [
+        12,
+        11,
+        8
+      ],
+      "retrieved_pages": [
+        8,
+        11,
+        12
+      ],
+      "verdict": {
+        "grounded": true,
+        "relevant": true,
+        "appropriately_refused": null,
+        "citation_supported": true,
+        "issues": "",
+        "fact_coverage": [
+          {
+            "fact": "The query combines project = \"MYPROJECT\", status = \"Open\", and created >= startOfMonth().",
+            "covered": true,
+            "evidence": "The generated answer explicitly returns the JQL 'project = \"MYPROJECT\" AND status = \"Open\" AND created >= startOfMonth()'; the same query and explanation appear in the retrieved context (page 12)."
+          },
+          {
+            "fact": "startOfMonth() represents the beginning of the current month for this search.",
+            "covered": true,
+            "evidence": "The answer states 'created since the start of the current month (startOfMonth())', and page 12 explains that startOfMonth() allows searches relative to the start of the current month."
+          }
+        ],
+        "cited_pages": [
+          12
+        ],
+        "citation_pages_retrieved": true
+      },
+      "fact_coverage": {
+        "evaluated": true,
+        "expected_count": 2,
+        "covered_count": 2,
+        "coverage": 1.0,
+        "missing_facts": [],
+        "validation_error": null,
+        "details": [
+          {
+            "fact": "The query combines project = \"MYPROJECT\", status = \"Open\", and created >= startOfMonth().",
+            "covered": true,
+            "evidence": "The generated answer explicitly returns the JQL 'project = \"MYPROJECT\" AND status = \"Open\" AND created >= startOfMonth()'; the same query and explanation appear in the retrieved context (page 12)."
+          },
+          {
+            "fact": "startOfMonth() represents the beginning of the current month for this search.",
+            "covered": true,
+            "evidence": "The answer states 'created since the start of the current month (startOfMonth())', and page 12 explains that startOfMonth() allows searches relative to the start of the current month."
+          }
+        ]
+      }
+    },
+    {
+      "id": "q23",
+      "type": "lookup",
+      "question": "If I know a custom field's ID but not its name, how does the PDF show querying it?",
+      "expected_answerable": true,
+      "gold_pages": [
+        8
+      ],
+      "expected_facts": [
+        "A custom field can be queried by ID using the cf[ID] notation.",
+        "The source example is cf[10001] = \"High\", where 10001 represents the custom field's ID."
+      ],
+      "answer": "Use the cf[ID] syntax with the field's numeric ID. Example from the PDF:\n\ncf[10001] = \"High\"\n\nThis queries the custom field whose ID is 10001 for the value \"High\" — replace 10001 with your custom field's actual ID. [page 8]",
+      "retrieved_page_ranking": [
+        8,
+        14,
+        2
+      ],
+      "retrieved_pages": [
+        2,
+        8,
+        14
+      ],
+      "verdict": {
+        "grounded": true,
+        "relevant": true,
+        "appropriately_refused": null,
+        "citation_supported": true,
+        "issues": "",
+        "fact_coverage": [
+          {
+            "fact": "A custom field can be queried by ID using the cf[ID] notation.",
+            "covered": true,
+            "evidence": "The answer explicitly states 'Use the cf[ID] syntax with the field's numeric ID.' The retrieved context (page 8) shows the same pattern and explains using cf[10001] for a custom field ID."
+          },
+          {
+            "fact": "The source example is cf[10001] = \"High\", where 10001 represents the custom field's ID.",
+            "covered": true,
+            "evidence": "The answer provides the example 'cf[10001] = \"High\"' and the context on page 8 contains the identical example and states that cf[10001] represents the custom field with ID 10001."
+          }
+        ],
+        "cited_pages": [
+          8
+        ],
+        "citation_pages_retrieved": true
+      },
+      "fact_coverage": {
+        "evaluated": true,
+        "expected_count": 2,
+        "covered_count": 2,
+        "coverage": 1.0,
+        "missing_facts": [],
+        "validation_error": null,
+        "details": [
+          {
+            "fact": "A custom field can be queried by ID using the cf[ID] notation.",
+            "covered": true,
+            "evidence": "The answer explicitly states 'Use the cf[ID] syntax with the field's numeric ID.' The retrieved context (page 8) shows the same pattern and explains using cf[10001] for a custom field ID."
+          },
+          {
+            "fact": "The source example is cf[10001] = \"High\", where 10001 represents the custom field's ID.",
+            "covered": true,
+            "evidence": "The answer provides the example 'cf[10001] = \"High\"' and the context on page 8 contains the identical example and states that cf[10001] represents the custom field with ID 10001."
+          }
+        ]
+      }
+    },
+    {
+      "id": "q24",
+      "type": "paraphrase",
+      "question": "How can I search for issues that are either Resolved or Closed?",
+      "expected_answerable": true,
+      "gold_pages": [
+        9
+      ],
+      "expected_facts": [
+        "The OR operator broadens a search by allowing either condition to match.",
+        "The source example is status = \"Resolved\" OR status = \"Closed\"."
+      ],
+      "answer": "Use the OR operator between status clauses. Example from the source:\n\nstatus = \"Resolved\" OR status = \"Closed\" [page 9]\n\nIf you want to limit that to a project, you can group the status conditions with parentheses, for example:\n\nproject = \"MYPROJECT\" AND (status = \"Resolved\" OR status = \"Closed\") [page 9]",
+      "retrieved_page_ranking": [
+        9,
+        8,
+        11
+      ],
+      "retrieved_pages": [
+        8,
+        9,
+        11
+      ],
+      "verdict": {
+        "grounded": true,
+        "relevant": true,
+        "appropriately_refused": null,
+        "citation_supported": true,
+        "issues": "",
+        "fact_coverage": [
+          {
+            "fact": "The OR operator broadens a search by allowing either condition to match.",
+            "covered": true,
+            "evidence": "The answer instructs to use the OR operator between status clauses and gives the example status = \"Resolved\" OR status = \"Closed\"; the retrieved context (page 9) explicitly states the OR operator 'Broaden your search' and that the example finds issues that are either resolved or closed."
+          },
+          {
+            "fact": "The source example is status = \"Resolved\" OR status = \"Closed\".",
+            "covered": true,
+            "evidence": "The generated answer reproduces the exact example status = \"Resolved\" OR status = \"Closed\" and the retrieved context on page 9 contains the identical example."
+          }
+        ],
+        "cited_pages": [
+          9
+        ],
+        "citation_pages_retrieved": true
+      },
+      "fact_coverage": {
+        "evaluated": true,
+        "expected_count": 2,
+        "covered_count": 2,
+        "coverage": 1.0,
+        "missing_facts": [],
+        "validation_error": null,
+        "details": [
+          {
+            "fact": "The OR operator broadens a search by allowing either condition to match.",
+            "covered": true,
+            "evidence": "The answer instructs to use the OR operator between status clauses and gives the example status = \"Resolved\" OR status = \"Closed\"; the retrieved context (page 9) explicitly states the OR operator 'Broaden your search' and that the example finds issues that are either resolved or closed."
+          },
+          {
+            "fact": "The source example is status = \"Resolved\" OR status = \"Closed\".",
+            "covered": true,
+            "evidence": "The generated answer reproduces the exact example status = \"Resolved\" OR status = \"Closed\" and the retrieved context on page 9 contains the identical example."
+          }
+        ]
+      }
+    },
+    {
+      "id": "q25",
+      "type": "trap",
+      "question": "What is the current monthly price of ScriptRunner for my Jira subscription?",
+      "expected_answerable": false,
+      "gold_pages": [],
+      "expected_facts": [],
+      "answer": "I don’t have that information in the provided context. The documents describe ScriptRunner’s features and limitations but do not state any pricing or monthly subscription cost for ScriptRunner [page 6][page 7]. The only prices shown in the context are for an unrelated training/workshop ($12 and $200 mentioned on page 15) and do not refer to ScriptRunner itself [page 15].\n\nIf you can provide a source that lists ScriptRunner pricing (for example a vendor or marketplace page), I can read it and report the monthly price.",
+      "retrieved_page_ranking": [
+        6,
+        7,
+        15
+      ],
+      "retrieved_pages": [
+        6,
+        7,
+        15
+      ],
+      "verdict": {
+        "grounded": true,
+        "relevant": true,
+        "appropriately_refused": true,
+        "citation_supported": true,
+        "issues": "",
+        "fact_coverage": [],
+        "cited_pages": [
+          6,
+          7,
+          15
+        ],
+        "citation_pages_retrieved": true
+      },
+      "fact_coverage": {
+        "evaluated": false,
+        "expected_count": 0,
+        "covered_count": 0,
+        "coverage": null,
+        "missing_facts": [],
+        "validation_error": null
+      }
+    },
+    {
+      "id": "q26",
+      "type": "trap",
+      "question": "What is the maximum number of issues my Jira instance can store?",
+      "expected_answerable": false,
+      "gold_pages": [],
+      "expected_facts": [],
+      "answer": "I don't have enough information in the provided documents to determine a maximum number of issues. The supplied pages discuss JQL, fields, operators, and wildcard usage but do not mention any storage or issue-count limits [page 8][page 9][page 14].\n\nTo find the answer for your instance, check your Jira administrator or your product documentation / support resources (these sources are not included in the provided context).",
+      "retrieved_page_ranking": [
+        14,
+        9,
+        8
+      ],
+      "retrieved_pages": [
+        8,
+        9,
+        14
+      ],
+      "verdict": {
+        "grounded": true,
+        "relevant": true,
+        "appropriately_refused": true,
+        "citation_supported": true,
+        "issues": "",
+        "fact_coverage": [],
+        "cited_pages": [
+          8,
+          9,
+          14
+        ],
+        "citation_pages_retrieved": true
+      },
+      "fact_coverage": {
+        "evaluated": false,
+        "expected_count": 0,
+        "covered_count": 0,
+        "coverage": null,
+        "missing_facts": [],
+        "validation_error": null
+      }
     }
-  },
-  {
-    "question": "What is the capital of France?",
-    "answer": "I don't have enough information in the provided context to answer that question. The supplied pages discuss JQL functions and wildcard/date searches, not world capitals [page 5] [page 12] [page 13].",
-    "verdict": {
-      "grounded": true,
-      "relevant": true,
-      "appropriately_refused": true,
-      "issues": "none"
-    }
-  },
-  {
-    "question": "Can I use regular expressions in JQL?",
-    "answer": "No — JQL does not natively support regular expressions. Plugins such as ScriptRunner add “regex-like” searching via custom JQL functions (for example versionMatch for version fields, wildcard label searches, and other advanced pattern-matching functions) [page 6][page 7]. JQL itself does support wildcards for partial matches, but wildcards (especially leading ones) and regex-like searches can hurt performance, and tools like ScriptRunner require admin access and some learning to use safely [page 14][page 7].",
-    "verdict": {
-      "grounded": true,
-      "relevant": true,
-      "appropriately_refused": null,
-      "issues": "none"
-    }
-  },
-  {
-    "question": "What is the workshop being offered?",
-    "answer": "A 7‑hour live practical, hands‑on workshop (a deep‑dive into JQL — Introduction to Jira Query Language) [page 15].",
-    "verdict": {
-      "grounded": true,
-      "relevant": true,
-      "appropriately_refused": false,
-      "issues": "Includes an extraneous reference '[page 15]' not present in the retrieved context; otherwise answer matches the context (7-hour live practical hands-on JQL workshop)."
-    }
-  }
-]
+  ]
+}
