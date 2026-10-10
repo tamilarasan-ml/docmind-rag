@@ -1,0 +1,284 @@
+
+[
+  {
+    "id": "q01",
+    "type": "lookup",
+    "question": "What does currentUser() do in JQL?",
+    "gold_pages": [5],
+    "must_contain": "currentUser",
+    "expected_facts": [
+      "Explains what currentUser() represents according to the source.",
+      "Explains how currentUser() can be used in an assignee query, if supported by the source."
+    ]
+  },
+  {
+    "id": "q02",
+    "type": "paraphrase",
+    "question": "How do I find tickets that are assigned to me?",
+    "gold_pages": [5, 8],
+    "must_contain": "currentUser",
+    "note": "Page 8 added after manual review: its Assignee section answers this directly.",
+    "expected_facts": [
+      "Use the JQL query assignee = currentUser() to find issues assigned to the user running the search.",
+      "The assignee field can also be queried using a specific username."
+    ]
+  },
+  {
+    "id": "q03",
+    "type": "lookup",
+    "question": "What is ScriptRunner used for?",
+    "gold_pages": [6],
+    "must_contain": "ScriptRunner",
+    "expected_facts": [
+      "ScriptRunner is a Jira plugin that extends JQL functionality with regex-like searching.",
+      "ScriptRunner provides custom JQL functions that support more granular and complex searches.",
+      "The versionMatch function can perform regex-like searches on version fields."
+    ]
+  },
+  {
+    "id": "q04",
+    "type": "paraphrase",
+    "question": "Will regex-style searches slow down my Jira instance?",
+    "gold_pages": [7],
+    "must_contain": "Performance",
+    "expected_facts": [
+      "Regex-like searches can affect Jira performance, especially on large instances.",
+      "Regex-like searching should be used judiciously."
+    ]
+  },
+  {
+    "id": "q05",
+    "type": "lookup",
+    "question": "How do I search for issues with status In Progress?",
+    "gold_pages": [8],
+    "must_contain": "In Progress",
+    "expected_facts": [
+      "Use the JQL query status = \"In Progress\" to find issues currently in progress."
+    ]
+  },
+  {
+    "id": "q06",
+    "type": "near_duplicate",
+    "question": "How do I combine several criteria using the AND operator?",
+    "gold_pages": [9],
+    "must_contain": "AND Operator",
+    "note": "Kept [9] after review: page 10 uses AND but is about nesting with parentheses and OR. Judgment call.",
+    "expected_facts": [
+      "The AND operator combines multiple search criteria.",
+      "A query using AND returns issues that satisfy all the combined criteria.",
+      "The source example combines project, status, and Customer Impact conditions."
+    ]
+  },
+  {
+    "id": "q07",
+    "type": "lookup",
+    "question": "How do I group conditions with parentheses in a query?",
+    "gold_pages": [10],
+    "must_contain": "Nesting",
+    "expected_facts": [
+      "Parentheses group conditions in a JQL query.",
+      "Grouping conditions helps ensure logical evaluation is performed correctly.",
+      "The source demonstrates grouping conditions with AND and OR inside parentheses."
+    ]
+  },
+  {
+    "id": "q08",
+    "type": "near_duplicate",
+    "question": "How do I search using relative dates like the last few days?",
+    "gold_pages": [11],
+    "must_contain": "Relative",
+    "expected_facts": [
+      "Relative date queries can use startOfWeek(-1) and endOfWeek(-1) to search for issues created during the previous week.",
+      "The query due >= now() AND due <= now(4d) searches for issues due within the next four days.",
+      "The now() function represents the current timestamp."
+    ]
+  },
+  {
+    "id": "q09",
+    "type": "near_duplicate",
+    "question": "How do I use a wildcard to match a single character?",
+    "gold_pages": [13],
+    "must_contain": "Single Character",
+    "expected_facts": [
+      "The question mark (?) wildcard represents a single character.",
+      "The example summary ~ \"te?t\" can match words such as text and test."
+    ]
+  },
+  {
+    "id": "q10",
+    "type": "near_duplicate",
+    "question": "What should I watch out for when using wildcard searches?",
+    "gold_pages": [14],
+    "must_contain": "Considerations",
+    "expected_facts": [
+      "Leading wildcards such as *config can significantly affect Jira performance.",
+      "Wildcards can return more results than necessary and reduce search precision.",
+      "The source recommends using wildcards sparingly and avoiding leading wildcards when possible."
+    ]
+  },
+  {
+    "id": "q11",
+    "type": "multi_page",
+    "question": "What operators are available in JQL?",
+    "gold_pages": [3, 4],
+    "must_contain": "Operators",
+    "expected_facts": [
+      "Comparison operators include =, !=, >, <, >=, and <=.",
+      "IN and NOT IN match or exclude values from a specified list.",
+      "IS and IS NOT are used for fields with empty or specified states.",
+      "The tilde (~) and not-tilde (!~) operators support text search and exclusion.",
+      "WAS-related operators support searches based on previous field values."
+    ]
+  },
+  {
+    "id": "q12",
+    "type": "near_duplicate",
+    "question": "Which operator works for fields that can be empty?",
+    "gold_pages": [4],
+    "must_contain": "Kind of Equal",
+    "expected_facts": [
+      "The IS operator can be used to search for fields that are empty.",
+      "The query assignee IS EMPTY finds issues that are not assigned to anyone.",
+      "IS NOT can find issues where a field is not empty."
+    ]
+  },
+  {
+    "id": "q13",
+    "type": "lookup",
+    "question": "How long is the live practical workshop?",
+    "gold_pages": [15],
+    "must_contain": "7 Hours",
+    "expected_facts": [
+      "The advertised live practical workshop lasts 7 hours."
+    ]
+  },
+  {
+    "id": "q14",
+    "type": "trap",
+    "question": "What is the capital of France?",
+    "gold_pages": [],
+    "must_contain": ""
+  },
+  {
+    "id": "q15",
+    "type": "trap",
+    "question": "Who is the CEO of Atlassian?",
+    "gold_pages": [],
+    "must_contain": ""
+  },
+  {
+    "id": "q16",
+    "type": "lookup",
+    "question": "What are the three basic components of a JQL query, and what does each represent?",
+    "gold_pages": [2],
+    "must_contain": "Basic syntax",
+    "expected_facts": [
+      "A basic JQL query uses fields, operators, and values.",
+      "Fields represent issue attributes, operators relate fields to values, and values specify the criteria being searched for."
+    ]
+  },
+  {
+    "id": "q17",
+    "type": "paraphrase",
+    "question": "When comparing dates or numbers in JQL, what is the difference between > and >=, or between < and <=?",
+    "gold_pages": [3],
+    "must_contain": "Greater than",
+    "expected_facts": [
+      "The > and < operators perform greater-than and less-than comparisons.",
+      "The >= and <= operators include the boundary value, unlike > and <."
+    ]
+  },
+  {
+    "id": "q18",
+    "type": "lookup",
+    "question": "How can I find issues whose summary does not contain the word Task?",
+    "gold_pages": [4],
+    "must_contain": "summary !~",
+    "expected_facts": [
+      "The !~ operator searches for text fields that do not contain the specified search term.",
+      "The source example is summary !~ \"Task\"."
+    ]
+  },
+  {
+    "id": "q19",
+    "type": "paraphrase",
+    "question": "How can I use now() to find issues updated in the last two hours?",
+    "gold_pages": [5],
+    "must_contain": "now()",
+    "expected_facts": [
+      "The now() function represents the current timestamp.",
+      "The source gives updated > now(-2h) as a query for issues updated in the last two hours."
+    ]
+  },
+  {
+    "id": "q20",
+    "type": "lookup",
+    "question": "Which JQL operators can help identify issues that previously had particular status values during a specified time period?",
+    "gold_pages": [4],
+    "must_contain": "WAS",
+    "expected_facts": [
+      "WAS and related operators support searches based on previous field values.",
+      "WAS IN can search for previous values from a specified list.",
+      "The source demonstrates combining historical status operators with DURING to specify a timeframe."
+    ]
+  },
+  {
+    "id": "q21",
+    "type": "lookup",
+    "question": "What date and time format does the PDF show for finding issues created at 3 PM on March 5, 2024?",
+    "gold_pages": [11],
+    "must_contain": "YYYY/MM/DD HH:mm",
+    "expected_facts": [
+      "The source uses YYYY/MM/DD HH:mm for date-and-time searches.",
+      "The example query is created = \"2024/03/05 15:00\"."
+    ]
+  },
+  {
+    "id": "q22",
+    "type": "paraphrase",
+    "question": "How would I search for open issues in MYPROJECT created since the beginning of the current month?",
+    "gold_pages": [12],
+    "must_contain": "startOfMonth()",
+    "expected_facts": [
+      "The query combines project = \"MYPROJECT\", status = \"Open\", and created >= startOfMonth().",
+      "startOfMonth() represents the beginning of the current month for this search."
+    ]
+  },
+  {
+    "id": "q23",
+    "type": "lookup",
+    "question": "If I know a custom field's ID but not its name, how does the PDF show querying it?",
+    "gold_pages": [8],
+    "must_contain": "cf[10001]",
+    "expected_facts": [
+      "A custom field can be queried by ID using the cf[ID] notation.",
+      "The source example is cf[10001] = \"High\", where 10001 represents the custom field's ID."
+    ]
+  },
+  {
+    "id": "q24",
+    "type": "paraphrase",
+    "question": "How can I search for issues that are either Resolved or Closed?",
+    "gold_pages": [9],
+    "must_contain": "OR Operator",
+    "expected_facts": [
+      "The OR operator broadens a search by allowing either condition to match.",
+      "The source example is status = \"Resolved\" OR status = \"Closed\"."
+    ]
+  },
+  {
+    "id": "q25",
+    "type": "trap",
+    "question": "What is the current monthly price of ScriptRunner for my Jira subscription?",
+    "gold_pages": [],
+    "must_contain": ""
+  },
+  {
+    "id": "q26",
+    "type": "trap",
+    "question": "What is the maximum number of issues my Jira instance can store?",
+    "gold_pages": [],
+    "must_contain": ""
+  }
+
+]

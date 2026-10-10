@@ -14,3 +14,9 @@ __pycache__/
 # OS files
 .DS_Store
 Thumbs.db
+# Alternate virtual environment
+.venv/
+
+# Local documentation backups
+README.backup.md
+README.before_structure_update.md

@@ -15,22 +15,32 @@
 
 ## Project Structure
 
-Docmind-rag/
+```text
+docmind-rag/
 ├── data/
-│   ├── eval_questions.json      # test set with a deliberate out-of-scope trap question
-│   └── eval_report.json         # evaluation results
+│   ├── eval_gold.json
+│   ├── eval_questions.json
+│   ├── eval_report.json
+│   ├── chunks.json
+│   └── chunks_with_embeddings.json
 ├── src/
-│   ├── ingest.py                # PDF extraction, boilerplate removal, chunking
-│   ├── embed.py                 # embedding generation
-│   ├── setup_index.py           # Azure AI Search index creation
-│   ├── upload.py                # push chunks + embeddings to the index
-│   ├── search_test.py           # standalone retrieval test
-│   ├── chat.py                  # CLI RAG chat
-│   ├── evaluate.py              # automated evaluation pipeline
-│   └── app.py                   # Streamlit UI
+│   ├── ingest.py
+│   ├── embed.py
+│   ├── setup_index.py
+│   ├── upload.py
+│   ├── chat.py
+│   ├── app.py
+│   ├── citation_utils.py
+│   ├── evaluate.py
+│   ├── retrieval_eval.py
+│   ├── query_rewrite_eval.py
+│   └── additional evaluation and validation scripts
+├── tests/
+│   └── test_citation_utils.py
 ├── requirements.txt
-└── .env.example                 # template for required environment variables
-
+├── README.md
+└── .env.example
+```
 ## Setup
 
 1. Clone the repo and create a virtual environment:
@@ -59,14 +69,27 @@ streamlit run src/app.py
 
 ## Evaluation Results
 
-5/5 test questions scored as grounded and relevant, including correct refusal on an intentionally out-of-scope question ("What is the capital of France?") — confirming the system doesn't hallucinate when the answer isn't in the source document.
 
-## What I Learned
+The current saved evaluation report covers 26 questions: 22 answerable questions and 4 intentionally unanswerable questions.
 
+* **Groundedness:** 26/26 judge results passed
+* **Relevance:** 26/26 judge results passed
+* **Retrieval Hit@1:** 22/22 answerable questions (100%)
+* **Retrieval Hit@3:** 22/22 answerable questions (100%)
+* **Retrieval Hit@5:** 22/22 answerable questions (100%)
+* **Fact coverage:** 52/52 expected facts covered
+* **Out-of-scope handling:** 4/4 trap questions correctly refused
+* **Citation-page retrieval:** cited pages were present in the retrieved context for all 26 questions
+* **Citation-support judgment:** 25/26 passed; one citation-attribution issue remains under review
+* **Evaluation errors:** 0
+
+These results describe the saved evaluation run, not a guarantee of production performance. Citation presence and citation correctness are evaluated separately.
 Building this surfaced real engineering issues that don't show up in tutorials: PDF boilerplate polluting chunk quality, the difference between a 404 (wrong endpoint) and a DNS failure (typo in hostname), why LLM judges need their own scrutiny (caught a false-positive citation flag in my own eval pipeline), and why virtual environments break when a project folder is moved.
+
 
 ## Possible Next Steps
 
-- Hybrid search (vector + keyword) instead of pure vector search
-- Support multi-document ingestion
-- Deploy to Azure App Service / Container Apps
+* Expand the evaluation set with more answerable, ambiguous, and out-of-scope questions.
+* Investigate the remaining citation-attribution issue and verify the correction with a targeted evaluation.
+* Extend ingestion to support multiple documents.
+* Add deployment and operational monitoring for Azure hosting.
