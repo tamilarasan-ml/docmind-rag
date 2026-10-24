@@ -112,7 +112,7 @@ flowchart TD
     A --> D[Out-of-Scope Refusal Tests]
     A --> E[Citation Validation]
 
-    B --> F[Hit@K and Ranking Metrics]
+    B --> F["Hit at K and Ranking Metrics"]
     C --> G[Groundedness and Relevance]
     D --> H[Refusal Correctness]
     E --> I[Page Presence and Claim Support]
