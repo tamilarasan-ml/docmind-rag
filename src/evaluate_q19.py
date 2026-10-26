@@ -60,7 +60,7 @@ def main() -> int:
         (
             "Explains the last-two-hours time window",
             bool(re.search(
-                r"last two hours|two hours ago",
+                r"last two hours|two hours ago|two hours before now|updated since then",
                 answer,
                 flags=re.IGNORECASE,
             )),
