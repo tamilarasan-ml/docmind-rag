@@ -1,9 +1,9 @@
 
-import json
+import re
 import sys
 from pathlib import Path
 
-# Allow imports from the src directory when run from the repository root.
+# Allow imports from src when run from the repository root.
 ROOT_DIR = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT_DIR / "src"))
 
@@ -13,33 +13,84 @@ from chat import answer_question
 QUESTION_ID = "q19"
 QUESTION = "How can I use now() to find issues updated in the last two hours?"
 
-EXPECTED_FACTS = [
-    "The now() function represents the current timestamp.",
-    "The source gives updated > now(-2h) as a query for issues updated in the last two hours.",
-]
+
+def has_citation_for_page(text: str, page: int) -> bool:
+    """Check for a citation such as [page 5] or [pages 5, 11]."""
+    pattern = rf"\[pages?\s+[\d,\s]+\]"
+    citations = re.findall(pattern, text, flags=re.IGNORECASE)
+
+    for citation in citations:
+        numbers = re.findall(r"\d+", citation)
+        if str(page) in numbers:
+            return True
+
+    return False
 
 
-def main():
+def main() -> int:
     print(f"\nRunning targeted evaluation: {QUESTION_ID}")
     print(f"Question: {QUESTION}\n")
 
-    # Call the same answer-generation function used by the application.
-    result = answer_question(QUESTION)
+    answer, chunks = answer_question(QUESTION)
+    answer = answer or ""
 
-    # Display the result for manual verification.
     print("Generated answer:")
-    print(result)
+    print(answer)
 
-    print("\nExpected facts to verify:")
-    for index, fact in enumerate(EXPECTED_FACTS, start=1):
-        print(f"{index}. {fact}")
+    retrieved_pages = sorted({
+        chunk["page"]
+        for chunk in chunks
+        if "page" in chunk
+    })
+    print(f"\nRetrieved source pages: {retrieved_pages}")
 
-    print("\nManual acceptance checklist:")
-    print("[ ] Answer explicitly defines now() as the current timestamp.")
-    print("[ ] Answer includes updated > now(-2h).")
-    print("[ ] Answer explains that the query finds issues updated in the last two hours.")
-    print("[ ] Citations support the definition and the query.")
-    
+    # Check the required answer content.
+    checks = [
+        (
+            "Defines now() as the current timestamp",
+            bool(
+                 re.search(r"now\s*\(\)", answer, flags=re.IGNORECASE)
+                 and re.search(r"\bcurrent timestamp\b", answer, flags=re.IGNORECASE)
+            ),
+        ),
+        (
+            "Includes the exact query updated > now(-2h)",
+            "updated > now(-2h)" in answer,
+        ),
+        (
+            "Explains the last-two-hours time window",
+            bool(re.search(
+                r"last two hours|two hours ago",
+                answer,
+                flags=re.IGNORECASE,
+            )),
+        ),
+        (
+            "Cites page 11 for the now() definition",
+            has_citation_for_page(answer, 11),
+        ),
+        (
+            "Cites page 5 for the query example",
+            has_citation_for_page(answer, 5),
+        ),
+    ]
+
+    print("\nAutomated acceptance checks:")
+    for description, passed in checks:
+        print(f"[{'PASS' if passed else 'FAIL'}] {description}")
+
+    passed_count = sum(passed for _, passed in checks)
+    total_count = len(checks)
+
+    print(f"\nResult: {passed_count}/{total_count} checks passed.")
+
+    if passed_count == total_count:
+        print(f"{QUESTION_ID}: PASS")
+        return 0
+
+    print(f"{QUESTION_ID}: FAIL")
+    return 1
+
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())
