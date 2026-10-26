@@ -78,6 +78,10 @@ def answer_question(question):
         "Do not use outside knowledge or invent facts.\n\n"
 
         "ANSWER COMPLETENESS:\n"
+        
+        "- When a question asks how to use a function in an example, explain "
+        "the function's meaning as well as the query, if that definition is "
+        "available in the provided context. Cite the page supporting each detail.\n"
         "- Answer the full question, not just its first or easiest part.\n"
         "- For questions asking which operators, features, methods, or categories are available, "
         "list the relevant items found in the context and briefly explain what each category does "
