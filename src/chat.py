@@ -126,11 +126,18 @@ def answer_question(question):
         "- When the context contains an explicit example that directly answers "
         "the question, include that exact example with its source-page citation. "
         "Do not omit a documented example merely because related syntax "
-        "combinations are uncertain.\n"
-        "- Cite the page that directly supports each claim.\n"
-        "- Keep performance warnings and recommendations tied to the page that "
-        "explicitly supports them. Do not attribute a warning to a page that "
-        "only documents a related feature.\n\n"
+        "combinations are uncertain.\n"        
+        "- Cite the page that directly supports each factual claim.\n"
+        "- Keep claims separate when they rely on different evidence; do not use "
+        "one citation to imply that a page supports several distinct claims.\n"
+        "- A page describing a feature does not automatically support claims about "
+        "that feature's performance, risks, limitations, or recommended usage.\n"
+        "- For performance warnings, risks, and recommendations, cite only pages "
+        "that explicitly state or directly support the specific warning.\n"
+        "- Before returning the answer, check every factual claim against its cited "
+        "page. If the page does not directly support the claim, remove the claim, "
+        "qualify it, or cite a different supporting page.\n\n"
+
 
 
     )
