@@ -137,6 +137,22 @@ class ClaimEvidenceMappingTests(unittest.TestCase):
         self.assertEqual(result, [])
 
 
+    def test_recognizes_jql_section_heading(self):
+        result = map_claims_to_evidence(
+            "Text-search operators",
+            self.chunks,
+        )
+        self.assertEqual(result, [])
+
+    def test_recognizes_heading_ending_with_colon(self):
+        result = map_claims_to_evidence(
+            "Quick JQL syntax note:",
+            self.chunks,
+        )
+        self.assertEqual(result, [])
+
+
+
 
 
 if __name__ == "__main__":
