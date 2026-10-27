@@ -4,6 +4,8 @@ from azure.core.credentials import AzureKeyCredential
 from azure.search.documents import SearchClient
 from azure.search.documents.models import VectorizedQuery
 from openai import AzureOpenAI
+from citation_validation import validate_citation_pages
+from claim_verification import verify_answer_claims
 
 load_dotenv()
 
@@ -168,6 +170,26 @@ def answer_question(question):
             '!~ summary !~ "Task"',
             'summary !~ "Task"',
     )
+
+    citation_validation = validate_citation_pages(answer, chunks)
+
+    if not citation_validation["valid"]:
+        print("Citation validation warning:",citation_validation)
+
+    claim_report = verify_answer_claims(answer, chunks)
+
+    print("Claim verification summary:", claim_report["summary"])
+    for item in claim_report["results"]:
+        if item["verdict"] != "supported":
+            print(
+                "Claim verification warning:",
+            {
+                "claim": item["claim"],
+                "cited_pages": item["cited_pages"],
+                "verdict": item["verdict"],
+                "explanation": item["explanation"],
+            },
+        )
 
     return answer, chunks
 
