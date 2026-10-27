@@ -210,7 +210,12 @@ def map_claims_to_evidence(
             # Keep paragraphs with a citation only at the end together.
             sentence_units.append(unit)
 
+
+
     for unit in sentence_units:
+        if is_standalone_heading(unit):
+            continue
+
         cited_pages = extract_cited_pages(unit)
         evidence = []
         seen = set()
@@ -259,6 +264,28 @@ def is_conversational_framing(claim: str) -> bool:
     )
 
 
+def is_standalone_heading(claim: str) -> bool:
+    """Identify common standalone section headings, not factual claims."""
+    text = claim.strip()
+
+    if not text:
+        return True
+
+    normalized = text.lstrip("-*• ").strip().lower().rstrip(":").strip()
+
+    headings = {
+        "examples",
+        "notes",
+        "related items",
+        "notes and related items",
+        "examples and notes",
+        "key points",
+        "summary",
+        "additional examples",
+    }
+
+    return normalized in headings
+
 def verify_answer_claims(
     answer: str,
     chunks: list[dict[str, Any]],
@@ -270,6 +297,8 @@ def verify_answer_claims(
     results = []
 
     for item in mapped_claims:
+        if is_standalone_heading(item["claim"]):
+            continue
         if not item["has_citation"]:
             if is_conversational_framing(item["claim"]):
                 continue

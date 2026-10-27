@@ -114,6 +114,30 @@ class ClaimEvidenceMappingTests(unittest.TestCase):
         )
 
 
+    def test_keeps_uncited_operator_label_as_unverified(self):
+        answer = (
+            "- Equal to (=)\n"
+            "  Matches issues where a field equals a value [page 5]."
+        )
+
+        result = map_claims_to_evidence(answer, self.chunks)
+
+        # The label and explanation should be assessed as one unit.
+        self.assertEqual(len(result), 1)
+        self.assertIn("Equal to", result[0]["claim"])
+        self.assertEqual(result[0]["cited_pages"], [5])
+        self.assertTrue(result[0]["evidence_available"])
+
+    def test_standalone_heading_is_not_a_factual_claim(self):
+        answer = "Examples:"
+
+        result = map_claims_to_evidence(answer, self.chunks)
+
+        # A heading should not enter the claim-verification report.
+        self.assertEqual(result, [])
+
+
+
 
 if __name__ == "__main__":
     unittest.main()
