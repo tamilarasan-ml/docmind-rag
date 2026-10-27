@@ -46,5 +46,27 @@ class VerifyAnswerClaimsTests(unittest.TestCase):
         self.assertEqual(result["summary"]["supported"], 0)
 
 
+    def test_uncited_factual_claim_remains_uncertain(self):
+        result = verify_answer_claims(
+            "The system supports real-time payments.",
+            self.chunks,
+        )
+
+        self.assertEqual(result["summary"]["uncertain"], 1)
+        self.assertEqual(result["summary"]["supported"], 0)
+
+    def test_uncited_conversational_text_is_identified(self):
+        result = verify_answer_claims(
+            "Let me know if you want more examples.",
+            self.chunks,
+        )
+
+        # This test will initially fail until conversational
+        # framing is explicitly handled.
+        self.assertEqual(result["summary"]["uncertain"], 0)
+        self.assertEqual(result["summary"]["supported"], 0)
+
+
+
 if __name__ == "__main__":
     unittest.main()

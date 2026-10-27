@@ -240,6 +240,24 @@ def map_claims_to_evidence(
 
 
 
+def is_conversational_framing(claim: str) -> bool:
+    """Identify common non-factual conversational framing."""
+    text = claim.strip().lower()
+
+    conversational_patterns = (
+        r"^let me know if you want\b",
+        r"^if you want (?:more|any|specific) "
+        r"(?:examples|details|help)\b",
+        r"^feel free to ask\b",
+        r"^would you like me to\b",
+        r"^i can help you with\b",
+    )
+
+    return any(
+        re.search(pattern, text)
+        for pattern in conversational_patterns
+    )
+
 
 def verify_answer_claims(
     answer: str,
@@ -253,6 +271,8 @@ def verify_answer_claims(
 
     for item in mapped_claims:
         if not item["has_citation"]:
+            if is_conversational_framing(item["claim"]):
+                continue
             results.append({
                 **item,
                 "verdict": "uncertain",
