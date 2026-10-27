@@ -22,7 +22,10 @@ AZURE_OPENAI_API_VERSION = os.getenv("AZURE_OPENAI_API_VERSION")
 JUDGE_DEPLOYMENT = os.getenv("AZURE_OPENAI_CHAT_DEPLOYMENT")
 
 GOLD_PATH = os.path.join("data", "eval_gold.json")
-REPORT_PATH = os.path.join("data", "eval_report.json")
+REPORT_PATH = os.getenv(
+    "DOCMIND_EVAL_REPORT_PATH",
+    os.path.join("data", "eval_report.json"),
+)
 
 
 # ---------------------------------------------------------
