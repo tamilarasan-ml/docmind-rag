@@ -67,6 +67,29 @@ class VerifyAnswerClaimsTests(unittest.TestCase):
         self.assertEqual(result["summary"]["supported"], 0)
 
 
+    def test_uncited_introductory_framing_is_excluded(self):
+        result = verify_answer_claims(
+            "Here are the JQL operators shown in the provided "
+            "documentation, with a short explanation.",
+            self.chunks,
+        )
+
+        self.assertEqual(result["summary"]["uncertain"], 0)
+        self.assertEqual(result["summary"]["supported"], 0)
+
+    def test_uncited_closing_offer_is_excluded(self):
+        result = verify_answer_claims(
+            "If you want a specific example, tell me which fields "
+            "and criteria you have and I'll help.",
+            self.chunks,
+        )
+
+        self.assertEqual(result["summary"]["uncertain"], 0)
+        self.assertEqual(result["summary"]["supported"], 0)
+
+
+
+
 
 if __name__ == "__main__":
     unittest.main()

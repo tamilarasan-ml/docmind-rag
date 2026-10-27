@@ -260,6 +260,7 @@ def is_conversational_framing(claim: str) -> bool:
         r"^i can help you with\b",
         r"^below are\b.*\bprovided context\b",
         r"^here are\b.*\bprovided context\b",
+        r"^here are the jql operators shown in the provided documentation\b",
     )
 
     return any(
@@ -281,6 +282,11 @@ def is_standalone_heading(claim: str) -> bool:
     normalized = normalized.rstrip(":").strip()
 
     exact_headings = {
+        "basics",
+        "comparison / membership operators",
+        "null / special-state operators",
+        "history / change operators",
+        "related operator pairs / alternatives",
         "examples",
         "notes",
         "related items",

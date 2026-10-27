@@ -152,6 +152,25 @@ class ClaimEvidenceMappingTests(unittest.TestCase):
         self.assertEqual(result, [])
 
 
+    def test_recognizes_additional_jql_section_headings(self):
+        headings = [
+            "Basics",
+            "Comparison / membership operators",
+            "Null / special-state operators",
+            "History / change operators",
+            "Related operator pairs / alternatives",
+        ]
+
+        for heading in headings:
+            with self.subTest(heading=heading):
+                result = map_claims_to_evidence(
+                    heading,
+                    self.chunks,
+                )
+                self.assertEqual(result, [])
+
+
+
 
 
 
