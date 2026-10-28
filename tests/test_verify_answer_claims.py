@@ -77,10 +77,98 @@ class VerifyAnswerClaimsTests(unittest.TestCase):
         self.assertEqual(result["summary"]["uncertain"], 0)
         self.assertEqual(result["summary"]["supported"], 0)
 
+    def test_uncited_evidence_backed_jql_summary_intro_is_excluded(self):
+        result = verify_answer_claims(
+            "Here's a concise, evidence-backed summary of the JQL "
+            "operators shown in the provided context, what each does, "
+            "and a source example for each.",
+            self.chunks,
+        )
+
+        self.assertEqual(result["summary"]["uncertain"], 0)
+        self.assertEqual(result["summary"]["supported"], 0)
+
+
     def test_uncited_closing_offer_is_excluded(self):
         result = verify_answer_claims(
             "If you want a specific example, tell me which fields "
             "and criteria you have and I'll help.",
+            self.chunks,
+        )
+
+        self.assertEqual(result["summary"]["uncertain"], 0)
+        self.assertEqual(result["summary"]["supported"], 0)
+
+    def test_uncited_jql_summary_intro_is_excluded(self):
+        result = verify_answer_claims(
+            "Below is a concise summary of the JQL operators shown "
+            "in the provided context, with each operator's purpose "
+            "and the exact examples from the source.",
+            self.chunks,
+        )
+
+        self.assertEqual(result["summary"]["uncertain"], 0)
+        self.assertEqual(result["summary"]["supported"], 0)
+
+    def test_uncited_operator_summary_intro_is_excluded(self):
+        result = verify_answer_claims(
+            "The provided context documents these JQL operators "
+            "and how they are used. Below are the operators shown, "
+            "with a brief purpose and a source example for each.",
+            self.chunks,
+        )
+
+        self.assertEqual(result["summary"]["uncertain"], 0)
+
+    def test_uncited_operator_closing_offer_is_excluded(self):
+        result = verify_answer_claims(
+            "If you want examples or explanations for a specific "
+            "operator from the list above, tell me which one and "
+            "I'll reproduce the documented example and description.",
+            self.chunks,
+        )
+
+        self.assertEqual(result["summary"]["uncertain"], 0)
+
+    def test_uncited_exact_example_guidance_is_excluded(self):
+        result = verify_answer_claims(
+            "If you want the exact example syntax preserved for any "
+            "specific operator above, use the example shown with its "
+            "cited page.",
+            self.chunks,
+        )
+
+        self.assertEqual(result["summary"]["uncertain"], 0)
+        self.assertEqual(result["summary"]["supported"], 0)
+
+    def test_uncited_jql_catalog_intro_is_excluded(self):
+        result = verify_answer_claims(
+            "Here’s a concise catalog of JQL operators shown in the "
+            "provided context, with what each operator means and a "
+            "source example when available.",
+            self.chunks,
+        )
+
+        self.assertEqual(result["summary"]["uncertain"], 0)
+        self.assertEqual(result["summary"]["supported"], 0)
+
+
+    def test_uncited_single_operator_closing_offer_is_excluded(self):
+        result = verify_answer_claims(
+            "If you want examples or more detail for any single "
+            "operator above, tell me which one and I’ll show the "
+            "exact example(s) from the context.",
+            self.chunks,
+        )
+
+        self.assertEqual(result["summary"]["uncertain"], 0)
+        self.assertEqual(result["summary"]["supported"], 0)
+
+    def test_uncited_operator_clarification_offer_is_excluded(self):
+        result = verify_answer_claims(
+            "If you want examples or clarification for any specific "
+            "operator above, tell me which one and I’ll show the exact "
+            "example from the source.",
             self.chunks,
         )
 

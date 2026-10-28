@@ -261,6 +261,15 @@ def is_conversational_framing(claim: str) -> bool:
         r"^below are\b.*\bprovided context\b",
         r"^here are\b.*\bprovided context\b",
         r"^here are the jql operators shown in the provided documentation\b",
+        r"^below is a concise summary of the jql operators shown in the provided context\b",
+        r"^here’s a concise, evidence-backed summary of the jql operators shown in the provided context\b",
+        r"^the provided context documents these jql operators\b.*"
+        r"\bbelow are the operators shown\b",
+        r"^if you want the exact example syntax preserved for any specific operator\b",
+        r"^here.?s a concise catalog of jql operators shown in the provided context\b",
+        r"^if you want examples or more detail for any single operator above\b",
+        r"^here.?s a concise, evidence-backed summary of the jql operators shown in the provided context\b",
+        r"^if you want examples or clarification for any specific operator above\b",
     )
 
     return any(
@@ -282,6 +291,12 @@ def is_standalone_heading(claim: str) -> bool:
     normalized = normalized.rstrip(":").strip()
 
     exact_headings = {
+        "short definition",
+        "common operators (with what they do and source examples)",
+        "purpose",
+        "how to use it",
+        "exact examples from the source",
+        "related operators",
         "basics",
         "comparison / membership operators",
         "null / special-state operators",
@@ -302,6 +317,25 @@ def is_standalone_heading(claim: str) -> bool:
         "text-search operators",
         "history-based operators (previous values / time-based)",
         "notes and scope",
+        "equality and inequality",
+        "set membership",
+        "comparisons (numbers/dates)",
+        "is / is not (null / special states)",
+        "text-search (contains / does not contain)",
+        "change-history operators",
+        "basic syntax",
+        "comparison / equality operators",
+        "range and boundary comparisons (numbers and dates)",
+        "historical / change tracking",
+        "notes and cross-references",
+        "overview",
+        "membership (collections)",
+        "existence / special-state checks",
+        "text searching (tilde)",
+        "historical (was / was not)",
+        "brief definition",
+        "how common jql operators work (with source examples)",
+        "how to build a simple query (recommended steps from the source)",
     }
 
     if normalized in exact_headings:

@@ -80,7 +80,7 @@ def answer_question(question):
         "Do not use outside knowledge or invent facts.\n\n"
 
         "ANSWER COMPLETENESS:\n"
-        
+
         "- When a question asks how to use a function in an example, explain "
         "the function's meaning as well as the query, if that definition is "
         "available in the provided context. Cite the page supporting each detail.\n"
@@ -124,6 +124,15 @@ def answer_question(question):
         "GROUNDING AND CITATIONS:\n"
         "- Every factual claim must be supported by the provided context.\n"
         "- Cite the source page for relevant claims using [page N].\n"
+        "- For lists of operators, features, or categories, cite each factual "
+        "bullet individually using the page that supports it. Do not rely on "
+        "a heading or a citation in a neighboring bullet to support the claim.\n"
+        "- Keep structural section headings separate from factual content. "
+        "Headings do not need citations, but every factual explanation and "
+        "source example must include its own supporting page citation.\n"
+        "- When a bullet contains multiple factual statements, ensure the "
+        "citation supports all of them; otherwise split the bullet or qualify "
+        "the unsupported part.\n"
         "- If information comes from multiple pages, cite the corresponding pages.\n"
         "- If the context supports only part of the answer, explain what it supports and identify "
         "what cannot be established from the context.\n"
@@ -132,7 +141,7 @@ def answer_question(question):
         "- When the context contains an explicit example that directly answers "
         "the question, include that exact example with its source-page citation. "
         "Do not omit a documented example merely because related syntax "
-        "combinations are uncertain.\n"        
+        "combinations are uncertain.\n"
         "- Cite the page that directly supports each factual claim.\n"
         "- Keep claims separate when they rely on different evidence; do not use "
         "one citation to imply that a page supports several distinct claims.\n"
@@ -174,10 +183,9 @@ def answer_question(question):
     citation_validation = validate_citation_pages(answer, chunks)
 
     if not citation_validation["valid"]:
-        print("Citation validation warning:",citation_validation)
+        print("Citation validation warning:", citation_validation)
 
     claim_report = verify_answer_claims(answer, chunks)
-
     print("Claim verification summary:", claim_report["summary"])
     for item in claim_report["results"]:
         if item["verdict"] != "supported":

@@ -154,11 +154,36 @@ class ClaimEvidenceMappingTests(unittest.TestCase):
 
     def test_recognizes_additional_jql_section_headings(self):
         headings = [
+            "short definition",
+            "common operators (with what they do and source examples)",
             "Basics",
             "Comparison / membership operators",
             "Null / special-state operators",
             "History / change operators",
             "Related operator pairs / alternatives",
+            "Purpose",
+            "How to use it",
+            "Exact examples from the source",
+            "Related operators",
+            "Equality and inequality",
+            "Set membership",
+            "Comparisons (numbers/dates)",
+            "IS / IS NOT (null / special states)",
+            "Text-search (contains / does not contain)",
+            "Change-history operators",
+            "basic syntax",
+            "comparison / equality operators",
+            "range and boundary comparisons (numbers and dates)",
+            "historical / change tracking",
+            "notes and cross-references",
+            "overview",
+            "membership (collections)",
+            "existence / special-state checks",
+            "text searching (tilde)",
+            "historical (was / was not)",
+            "Brief definition",
+            "How common JQL operators work (with source examples)",
+            "How to build a simple query (recommended steps from the source)",
         ]
 
         for heading in headings:
