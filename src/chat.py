@@ -289,6 +289,11 @@ def answer_question(question):
         "- Keep claims separate when they rely on different evidence; do not use "
         "one citation to imply that a page supports several distinct claims.\n"
 
+        "- When consecutive factual sentences rely on different source pages, "
+        "write them as separate sentences and attach the appropriate citation "
+        "to each sentence. Do not place a single citation at the end of a "
+        "multi-sentence paragraph if it supports only the final sentence.\n"
+
         "- A page describing a feature does not automatically support claims about "
         "that feature's performance, risks, limitations, or recommended usage.\n"
 

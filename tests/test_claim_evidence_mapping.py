@@ -111,6 +111,51 @@ class ClaimEvidenceMappingTests(unittest.TestCase):
             [11],
         )
 
+    def test_maps_now_function_explanation_to_separate_source_pages(self):
+        chunks = [
+            {
+                "page": 5,
+                "text": (
+                    "updated > now(-2h) finds issues updated "
+                    "in the last two hours."
+                ),
+            },
+            {
+                "page": 11,
+                "text": "now() returns the current timestamp.",
+            },
+        ]
+
+        answer = (
+            "Use now() with a negative hour offset [page 5]. "
+            "The now() function represents the current timestamp "
+            "[page 11].\n\n"
+            "For example:\n\n"
+            "updated > now(-2h)\n\n"
+            "This query finds issues updated in the last two hours "
+            "[page 5]."
+        )
+
+        result = map_claims_to_evidence(answer, chunks)
+
+        self.assertEqual(len(result), 4)
+
+        self.assertEqual(result[0]["cited_pages"], [5])
+        self.assertEqual(result[1]["cited_pages"], [11])
+
+        self.assertTrue(result[2]["inherited_evidence"])
+        self.assertEqual(result[2]["cited_pages"], [5])
+
+        self.assertEqual(result[3]["cited_pages"], [5])
+
+        for item, expected_page in zip(result, [5, 11, 5, 5]):
+            self.assertTrue(item["evidence_available"])
+            self.assertEqual(
+                [evidence["page"] for evidence in item["evidence"]],
+                [expected_page],
+            )
+
+
     def test_keeps_uncited_operator_label_as_unverified(self):
         answer = (
             "- Equal to (=)\n"
