@@ -179,5 +179,53 @@ class VerifyAnswerClaimsTests(unittest.TestCase):
 
 
 
+    @patch("claim_verification.verify_claim_semantically")
+    def test_exact_source_matched_jql_example_reaches_semantic_verifier(
+        self, mock_verify
+    ):
+        source_chunks = [
+            {
+                "page": 4,
+                "text": 'summary !~ "Task"',
+            }
+        ]
+
+        answer = 'summary !~ "Task"'
+
+        mock_verify.return_value = {
+            "claim": answer,
+            "verdict": "supported",
+            "evidence": source_chunks,
+            "explanation": "The exact JQL expression appears in the source.",
+        }
+
+        result = verify_answer_claims(
+            answer,
+            source_chunks,
+        )
+
+        # The semantic verifier must be called.
+        mock_verify.assert_called_once()
+
+        # The exact-matched source evidence must reach the verifier.
+        passed_evidence = mock_verify.call_args.kwargs["evidence"]
+        self.assertEqual(
+            [item["page"] for item in passed_evidence],
+            [4],
+        )
+
+        # The final verdict must come from semantic verification.
+        self.assertEqual(result["summary"]["supported"], 1)
+        self.assertEqual(result["summary"]["uncertain"], 0)
+
+        verified_claim = result["results"][0]
+
+        # Exact matching does not create an explicit citation.
+        self.assertFalse(verified_claim["has_citation"])
+
+        # Evidence association and semantic verification are separate.
+        self.assertTrue(verified_claim["inherited_evidence"])
+        self.assertEqual(verified_claim["verdict"], "supported")
+
 if __name__ == "__main__":
     unittest.main()
