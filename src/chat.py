@@ -12,7 +12,7 @@ from openai import AzureOpenAI
 
 from citation_validation import validate_citation_pages
 from claim_verification import verify_answer_claims
-
+from query_routing import select_retrieval_query
 
 # ---------------------------------------------------------
 # Environment and diagnostics configuration
@@ -77,20 +77,6 @@ search_client = SearchClient(
 
 
 # ---------------------------------------------------------
-# Targeted query variants
-# ---------------------------------------------------------
-
-TARGETED_QUERY_VARIANTS = {
-    "How do I combine several criteria using the AND operator?":
-        "JQL AND operator combine multiple criteria "
-        "project status Customer Impact",
-
-    "How can I find issues whose summary does not contain the word Task?":
-        'Jira JQL negative text search operator !~ summary "Task"',
-}
-
-
-# ---------------------------------------------------------
 # Retrieval
 # ---------------------------------------------------------
 
@@ -99,16 +85,13 @@ def retrieve_chunks(question, top_k=3):
 
     normalized_question = question.strip()
 
-    retrieval_query = TARGETED_QUERY_VARIANTS.get(
-        normalized_question,
-        normalized_question
-    )
+    retrieval_query = select_retrieval_query(normalized_question)
 
     diagnostic_log(
         "query_routing",
         question_hash=fingerprint(normalized_question),
         targeted_variant_applied=(
-            normalized_question in TARGETED_QUERY_VARIANTS
+            retrieval_query != normalized_question
         ),
         retrieval_query_hash=fingerprint(retrieval_query),
     )
