@@ -1,5 +1,7 @@
 
 import streamlit as st
+import os
+import subprocess
 
 from chat import answer_question
 
@@ -9,6 +11,24 @@ st.title("📄 DocMind — Ask Your Document")
 st.caption(
     "RAG-powered Q&A over your PDF, built with Azure AI Search + Azure OpenAI"
 )
+def get_deployment_commit():
+    commit = os.getenv("GITHUB_SHA")
+
+    if not commit:
+        try:
+            commit = subprocess.check_output(
+                ["git", "rev-parse", "HEAD"],
+                stderr=subprocess.DEVNULL,
+                text=True
+            ).strip()
+        except Exception:
+            commit = "unavailable"
+
+    return commit
+
+
+deployment_commit = get_deployment_commit()
+st.caption(f"Deployment Commit: `{deployment_commit}`
 
 if "messages" not in st.session_state:
     st.session_state.messages = []
