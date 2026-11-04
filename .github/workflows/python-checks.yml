@@ -3,9 +3,11 @@ name: Python Checks
 on:
   push:
     branches:
+      - main
       - fix/citation-grounding-sync
   pull_request:
     branches:
+      - main
       - fix/citation-grounding-sync
 
 permissions:
