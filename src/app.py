@@ -28,7 +28,7 @@ def get_deployment_commit():
 
 
 deployment_commit = get_deployment_commit()
-st.caption(f"Deployment Commit: `{deployment_commit}`
+st.caption(f"Deployment Commit: `{deployment_commit}`")
 
 if "messages" not in st.session_state:
     st.session_state.messages = []
