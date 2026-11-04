@@ -24,7 +24,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.14"
+          python-version: "3.11"
 
       - name: Install dependencies
         run: |
@@ -36,6 +36,11 @@ jobs:
           python -m py_compile src/evaluate.py
           python -m py_compile src/evaluate_q19.py
           python -m py_compile scripts/run_regression.py
+
+      - name: Run unit tests
+        run: |
+          PYTHONPATH="$GITHUB_WORKSPACE/src:$GITHUB_WORKSPACE" \
+          python -m unittest discover -s tests -v
 
       - name: Check whitespace
         run: git diff --check
