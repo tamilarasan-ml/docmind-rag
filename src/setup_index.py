@@ -16,11 +16,20 @@ from azure.search.documents.indexes.models import (
 load_dotenv()
 
 search_endpoint = os.getenv("AZURE_SEARCH_ENDPOINT")
-search_key = os.getenv("AZURE_SEARCH_API_KEY")
+search_key = os.getenv("AZURE_SEARCH_ADMIN_KEY")
+
 index_name = os.getenv("AZURE_SEARCH_INDEX_NAME")
 
+if not search_endpoint or not search_key or not index_name:
+    raise RuntimeError(
+        "Azure AI Search admin configuration is incomplete."
+    )
+
 credential = AzureKeyCredential(search_key)
-index_client = SearchIndexClient(endpoint=search_endpoint, credential=credential)
+index_client = SearchIndexClient(
+    endpoint=search_endpoint,
+    credential=credential
+)
 
 # Define the vector search configuration (HNSW = the algorithm used for fast similarity search)
 vector_search = VectorSearch(
