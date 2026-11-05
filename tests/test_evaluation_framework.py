@@ -579,12 +579,14 @@ class RegressionReportValidationTests(unittest.TestCase):
         self.gold_questions = [
             {
                 "id": "q01",
+                "question": "What is the first test question?",
                 "type": "normal",
                 "expected_answerable": True,
                 "expected_facts": ["Fact A"],
             },
             {
                 "id": "q02",
+                "question": "What is the second test question?",
                 "type": "trap",
                 "expected_answerable": False,
                 "expected_facts": [],
@@ -609,6 +611,7 @@ class RegressionReportValidationTests(unittest.TestCase):
             "results": [
                 {
                     "id": "q01",
+                    "type": "normal",
                     "expected_answerable": True,
                     "expected_facts": ["Fact A"],
                     "verdict": {
@@ -620,10 +623,23 @@ class RegressionReportValidationTests(unittest.TestCase):
                     },
                     "fact_coverage": {
                         "evaluated": True,
+                        "expected_count": 1,
+                        "covered_count": 1,
+                        "coverage": 1.0,
+                        "missing_facts": [],
+                        "validation_error": None,
+                        "details": [
+                            {
+                                "fact": "Fact A",
+                                "covered": True,
+                                "evidence": "Evidence supporting Fact A",
+                            }
+                        ],
                     },
                 },
                 {
                     "id": "q02",
+                    "type": "trap",
                     "expected_answerable": False,
                     "expected_facts": [],
                     "verdict": {
@@ -635,6 +651,12 @@ class RegressionReportValidationTests(unittest.TestCase):
                     },
                     "fact_coverage": {
                         "evaluated": False,
+                        "expected_count": 0,
+                        "covered_count": 0,
+                        "coverage": None,
+                        "missing_facts": [],
+                        "validation_error": None,
+                        "details": [],
                     },
                 },
             ],
@@ -647,7 +669,7 @@ class RegressionReportValidationTests(unittest.TestCase):
             Path(self.temp_directory.name) / "candidate.json"
         )
 
-    def validate(self, report):
+    def validate(self, report, gold_questions=None):
         with self.report_path.open(
             "w",
             encoding="utf-8",
@@ -656,7 +678,8 @@ class RegressionReportValidationTests(unittest.TestCase):
 
         validate_report(
             self.report_path,
-            self.gold_questions,
+            gold_questions if gold_questions is not None
+            else self.gold_questions,
         )
 
     def test_accepts_valid_report(self):
@@ -716,11 +739,34 @@ class RegressionReportValidationTests(unittest.TestCase):
 
     def test_rejects_incomplete_fact_coverage(self):
         report = copy.deepcopy(self.valid_report)
+        report["results"][0]["fact_coverage"]["details"][0][
+            "covered"
+        ] = False
+        report["results"][0]["fact_coverage"]["covered_count"] = 0
+        report["results"][0]["fact_coverage"]["coverage"] = 0.0
+        report["results"][0]["fact_coverage"]["missing_facts"] = [
+            "Fact A"
+        ]
         report["summary"]["covered_fact_count"] = 0
 
         with self.assertRaisesRegex(
             ValueError,
             "expected facts were not covered",
+        ):
+            self.validate(report)
+
+    def test_rejects_inconsistent_fact_coverage_counts(self):
+        report = copy.deepcopy(self.valid_report)
+
+        # Detail says Fact A is covered, but the aggregate
+        # covered_count claims that zero facts were covered.
+        report["results"][0]["fact_coverage"][
+            "covered_count"
+        ] = 0
+
+        with self.assertRaisesRegex(
+            ValueError,
+            "covered_count mismatch",
         ):
             self.validate(report)
 
@@ -745,6 +791,28 @@ class RegressionReportValidationTests(unittest.TestCase):
         with self.assertRaisesRegex(
             ValueError,
             "answerable but was marked",
+        ):
+            self.validate(report)
+
+    def test_rejects_result_type_mismatch_with_gold(self):
+        report = copy.deepcopy(self.valid_report)
+        report["results"][0]["type"] = "trap"
+
+        with self.assertRaisesRegex(
+            ValueError,
+            "type",
+        ):
+            self.validate(report)
+
+    def test_rejects_expected_facts_mismatch_with_gold(self):
+        report = copy.deepcopy(self.valid_report)
+        report["results"][0]["expected_facts"] = [
+            "Different fact"
+        ]
+
+        with self.assertRaisesRegex(
+            ValueError,
+            "expected_facts",
         ):
             self.validate(report)
 
