@@ -7,11 +7,21 @@ from azure.search.documents import SearchClient
 load_dotenv()
 
 search_endpoint = os.getenv("AZURE_SEARCH_ENDPOINT")
-search_key = os.getenv("AZURE_SEARCH_API_KEY")
+search_key = os.getenv("AZURE_SEARCH_ADMIN_KEY")
+
 index_name = os.getenv("AZURE_SEARCH_INDEX_NAME")
 
+if not search_endpoint or not search_key or not index_name:
+    raise RuntimeError(
+        "Azure AI Search admin configuration is incomplete."
+    )
+
 credential = AzureKeyCredential(search_key)
-search_client = SearchClient(endpoint=search_endpoint, index_name=index_name, credential=credential)
+search_client = SearchClient(
+    endpoint=search_endpoint,
+    index_name=index_name,
+    credential=credential
+)
 
 # Load chunks with embeddings from Day 3 step 1
 with open(os.path.join("data", "chunks_with_embeddings.json"), "r", encoding="utf-8") as f:
@@ -31,4 +41,4 @@ for chunk in chunks:
 result = search_client.upload_documents(documents=documents)
 
 success_count = sum(1 for r in result if r.succeeded)
-print(f"Uploaded {success_count} / {len(documents)} documents successfully.")   
+print(f"Uploaded {success_count} / {len(documents)} documents successfully.")

@@ -16,10 +16,17 @@ openai_client = AzureOpenAI(
 embedding_deployment = os.getenv("AZURE_OPENAI_EMBEDDING_DEPLOYMENT")
 
 # Azure AI Search client
+search_key = os.getenv("AZURE_SEARCH_QUERY_KEY")
+
+if not search_key:
+    raise RuntimeError(
+        "Azure AI Search query credential is not configured."
+    )
+
 search_client = SearchClient(
     endpoint=os.getenv("AZURE_SEARCH_ENDPOINT"),
     index_name=os.getenv("AZURE_SEARCH_INDEX_NAME"),
-    credential=AzureKeyCredential(os.getenv("AZURE_SEARCH_API_KEY"))
+    credential=AzureKeyCredential(search_key)
 )
 
 

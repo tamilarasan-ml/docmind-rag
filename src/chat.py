@@ -67,12 +67,17 @@ chat_deployment = os.getenv(
 # Azure AI Search configuration
 # ---------------------------------------------------------
 
+search_key = os.getenv("AZURE_SEARCH_QUERY_KEY")
+
+if not search_key:
+    raise RuntimeError(
+        "Azure AI Search query credential is not configured."
+    )
+
 search_client = SearchClient(
     endpoint=os.getenv("AZURE_SEARCH_ENDPOINT"),
     index_name=os.getenv("AZURE_SEARCH_INDEX_NAME"),
-    credential=AzureKeyCredential(
-        os.getenv("AZURE_SEARCH_API_KEY")
-    )
+    credential=AzureKeyCredential(search_key)
 )
 
 
