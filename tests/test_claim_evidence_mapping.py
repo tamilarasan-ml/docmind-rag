@@ -1,7 +1,11 @@
 
 import unittest
 
-from claim_verification import map_claims_to_evidence
+from claim_verification import (
+    is_standalone_heading,
+    map_claims_to_evidence,
+)
+
 
 
 class ClaimEvidenceMappingTests(unittest.TestCase):
@@ -12,6 +16,11 @@ class ClaimEvidenceMappingTests(unittest.TestCase):
             {"page": 11, "text": "now() returns the current timestamp."},
         ]
 
+    def test_empty_or_whitespace_claim_is_standalone_heading(self):
+        for claim in ["", "   ", "\n\t"]:
+            with self.subTest(claim=repr(claim)):
+                self.assertTrue(is_standalone_heading(claim))
+
     def test_maps_claim_to_its_cited_page(self):
         result = map_claims_to_evidence(
             "AND combines criteria [page 5].",
@@ -20,6 +29,24 @@ class ClaimEvidenceMappingTests(unittest.TestCase):
 
         self.assertEqual(len(result), 1)
         self.assertEqual(result[0]["cited_pages"], [5])
+        self.assertEqual(
+            [item["page"] for item in result[0]["evidence"]],
+            [5],
+        )
+
+    def test_ignores_chunks_without_page_numbers(self):
+        chunks = [
+            {"text": "This chunk has no page number."},
+            {"page": 5, "text": "AND combines criteria."},
+        ]
+
+        result = map_claims_to_evidence(
+            "AND combines criteria [page 5].",
+            chunks,
+        )
+
+        self.assertEqual(len(result), 1)
+        self.assertTrue(result[0]["evidence_available"])
         self.assertEqual(
             [item["page"] for item in result[0]["evidence"]],
             [5],
@@ -354,6 +381,21 @@ class ClaimEvidenceMappingTests(unittest.TestCase):
         ]
 
         answer = 'summary = "Task"'
+
+        result = map_claims_to_evidence(answer, chunks)
+
+        self.assertFalse(result[0]["evidence_available"])
+        self.assertNotIn("inherited_evidence", result[0])
+
+    def test_rejects_jql_match_followed_by_identifier_suffix(self):
+        chunks = [
+            {
+                "page": 16,
+                "text": 'status = "Open"_suffix',
+            }
+        ]
+
+        answer = 'status = "Open"'
 
         result = map_claims_to_evidence(answer, chunks)
 
