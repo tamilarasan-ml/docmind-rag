@@ -23,3 +23,17 @@ README.before_structure_update.md
 
 # PDF with unverified redistribution rights; retain locally
 /data/JQL.pdf
+
+# Streamlit secrets
+.streamlit/secrets.toml
+
+# Test coverage artifact
+.coverage
+
+# Protected evaluation evidence
+data/eval_report.json
+data/eval_report_baseline.json
+data/eval_report_q19_check.json
+
+# Protected source PDF
+data/JQL_original_verified.pdf

@@ -1,0 +1,174 @@
+
+import os
+import hashlib
+import logging
+
+from functools import lru_cache
+
+from dotenv import load_dotenv
+from openai import AzureOpenAI
+
+from citation_validation import validate_citation_pages
+from claim_verification import verify_answer_claims
+
+
+load_dotenv()
+
+logger = logging.getLogger("docmind.diagnostics")
+
+DIAGNOSTICS_ENABLED = (
+    os.getenv("DOCMIND_DIAGNOSTICS", "").lower() == "true"
+)
+
+
+@lru_cache(maxsize=1)
+def get_openai_client():
+    """
+    Initialize Azure OpenAI client only when required.
+
+    Caches the client so repeated calls reuse the same instance.
+    """
+    return AzureOpenAI(
+        azure_endpoint=os.getenv("AZURE_OPENAI_ENDPOINT"),
+        api_key=os.getenv("AZURE_OPENAI_API_KEY"),
+        api_version=os.getenv("AZURE_OPENAI_API_VERSION"),
+    )
+
+
+chat_deployment = os.getenv("AZURE_OPENAI_CHAT_DEPLOYMENT")
+
+
+def fingerprint(value):
+    return hashlib.sha256(
+        str(value).encode("utf-8")
+    ).hexdigest()[:12]
+
+
+def diagnostic_log(event, **fields):
+    if DIAGNOSTICS_ENABLED:
+        import json
+
+        logger.warning(
+            "DOCMIND_DIAG %s %s",
+            event,
+            json.dumps(fields, default=str),
+        )
+
+
+def build_context(chunks):
+    """Format retrieved chunks with their original page references."""
+
+    context_parts = []
+
+    for chunk in chunks:
+        context_parts.append(
+            f"[Source: page {chunk['page']}]\n{chunk['text']}"
+        )
+
+    return "\n\n---\n\n".join(context_parts)
+
+
+SYSTEM_PROMPT = "You are a helpful assistant that answers questions using ONLY the provided context. Do not use outside knowledge or invent facts.\n\nANSWER COMPLETENESS:\n- When a question asks how to use a function in an example, explain the function's meaning as well as the query, if that definition is available in the provided context. Cite the page supporting each detail.\n- Answer the full question, not just its first or easiest part.\n- For questions asking which operators, features, methods, or categories are available, list the relevant items found in the context and briefly explain what each category does when the context provides that information.\n- Do not merely list operator names or symbols if the context explains their meaning.\n- For questions about a specific operator or feature, explain its purpose and include a relevant source example when one is available.\n- Preserve source examples faithfully. Do not duplicate operator names, field names, keywords, or query fragments when reproducing an example.\n- Before returning a query example, check that its syntax matches the source and that the example does not contain accidental repeated text. If the source example is unclear, describe the operator without inventing a corrected example.\n- Include important distinctions, limitations, and examples that directly answer the question.\n- Keep the answer concise, but do not sacrifice completeness for brevity.\n- When the source describes complementary operators or alternatives relevant to the question, include those distinctions when they help complete the answer; for example, mention both IS and IS NOT when the context explains both.\n\n- When reproducing a source example, preserve the exact query syntax. Keep explanatory operator labels separate from the query itself; never prepend an operator to a complete field-operator-value query.\n\nRELATED OPERATORS AND ALTERNATIVES:\n- When the retrieved context documents a directly related alternative, briefly explain it if it helps answer the question. For example, mention IS NOT when the context explains IS and IS NOT.\n- Include a source-supported example and cite its page when available.\n- Do not add unrelated operators or unsupported details.\n\nEVIDENCE-BASED OPERATOR COMBINATIONS:\n- Do not infer that two operators or query features can be combined unless the provided context supports that combination.\n- Documentation of individual features does not by itself prove that every combination of those features is valid.\n- When a combined example is not explicitly supported, use the documented example or explain only the supported behavior.\n\nGROUNDING AND CITATIONS:\n- Every factual claim must be supported by the provided context.\n- Cite the source page for relevant claims using [page N].\n- For lists of operators, features, or categories, cite each factual bullet individually using the page that supports it. Do not rely on a heading or a citation in a neighboring bullet to support the claim.\n- Keep structural section headings separate from factual content. Headings do not need citations, but every factual explanation and source example must include its own supporting page citation.\n- When a bullet contains multiple factual statements, ensure the citation supports all of them; otherwise split the bullet or qualify the unsupported part.\n- If information comes from multiple pages, cite the corresponding pages.\n- If the context supports only part of the answer, explain what it supports and identify what cannot be established from the context.\n- If the answer is not available in the context, say you don't have enough information.\n- Never fabricate examples, metrics, technical behavior, or source references.\n- When the context contains an explicit example that directly answers the question, include that exact example with its source-page citation. Do not omit a documented example merely because related syntax combinations are uncertain.\n- Cite the page that directly supports each factual claim.\n- Keep claims separate when they rely on different evidence; do not use one citation to imply that a page supports several distinct claims.\n- When consecutive factual sentences rely on different source pages, write them as separate sentences and attach the appropriate citation to each sentence. Do not place a single citation at the end of a multi-sentence paragraph if it supports only the final sentence.\n- A page describing a feature does not automatically support claims about that feature's performance, risks, limitations, or recommended usage.\n- For performance warnings, risks, and recommendations, cite only pages that explicitly state or directly support the specific warning.\n- Before returning the answer, check every factual claim against its cited page. If the page does not directly support the claim, remove the claim, qualify it, or cite a different supporting page.\n\n"
+
+
+def answer_with_chunks(
+        question,
+        chunks,
+        answer_transform=None,
+):
+    """
+    Generate a grounded answer from supplied retrieval chunks.
+
+    Reuses DOCMIND citation validation and claim verification.
+    """
+
+    if not question or not question.strip():
+        raise ValueError("The question cannot be empty.")
+
+    if not chunks:
+        return (
+            "I don't have enough information in the provided document.",
+            [],
+        )
+
+    if not chat_deployment:
+        raise ValueError(
+            "Azure OpenAI chat deployment is not configured."
+        )
+
+    context = build_context(chunks)
+
+    diagnostic_log(
+        "context_built",
+        context_hash=fingerprint(context),
+        context_length=len(context),
+        question_hash=fingerprint(question),
+    )
+
+    user_prompt = (
+        f"Context:\n{context}\n\nQuestion: {question}"
+    )
+
+    # Initialize Azure OpenAI only when answer generation is required.
+    client = get_openai_client()
+
+    response = client.chat.completions.create(
+        model=chat_deployment,
+        messages=[
+            {"role": "system", "content": SYSTEM_PROMPT},
+            {"role": "user", "content": user_prompt},
+        ],
+    )
+
+    answer = response.choices[0].message.content or ""
+    # Apply an optional workflow-specific correction before validation.
+    if answer_transform is not None:
+        answer = answer_transform(answer)
+
+    diagnostic_log(
+        "answer_generated",
+        answer_hash=fingerprint(answer),
+        answer_length=len(answer),
+        finish_reason=response.choices[0].finish_reason,
+        model=response.model,
+        usage=(
+            response.usage.model_dump()
+            if response.usage else None
+        ),
+    )
+
+    citation_validation = validate_citation_pages(
+        answer,
+        chunks,
+    )
+
+    if not citation_validation["valid"]:
+        print(
+            "Citation validation warning:",
+            citation_validation,
+        )
+
+    claim_report = verify_answer_claims(
+        answer,
+        chunks,
+        client=client,
+        deployment=chat_deployment,
+    )
+
+    print(
+        "Claim verification summary:",
+        claim_report["summary"],
+    )
+
+    for item in claim_report["results"]:
+        if item["verdict"] != "supported":
+            print(
+                "Claim verification warning:",
+                {
+                    "claim_hash": fingerprint(item["claim"]),
+                    "cited_pages": item["cited_pages"],
+                    "verdict": item["verdict"],
+                },
+            )
+
+    return answer, chunks
