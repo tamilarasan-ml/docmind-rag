@@ -1,4 +1,5 @@
 import math
+MAX_EMBEDDING_CHUNKS = 100
 
 
 def embed_document_chunks(chunks, embedding_fn=None):
@@ -16,6 +17,12 @@ def embed_document_chunks(chunks, embedding_fn=None):
 
     if not chunks:
         raise ValueError("No document chunks were provided.")
+
+    if len(chunks) > MAX_EMBEDDING_CHUNKS:
+        raise ValueError(
+            f"The document exceeds the "
+            f"{MAX_EMBEDDING_CHUNKS}-chunk embedding limit."
+        )
 
     # Import lazily so tests can use a mocked embedding function
     # without initializing the Azure OpenAI client.

@@ -1,9 +1,12 @@
 import unittest
+from pathlib import Path
 import fitz
 
 from streamlit.testing.v1 import AppTest
 from types import ModuleType
 from unittest.mock import Mock, patch
+
+APP_PATH = Path(__file__).resolve().parents[1] / "src" / "app.py"
 
 
 
@@ -51,7 +54,7 @@ class TestDocMindApp(unittest.TestCase):
         return chunks, embedded_chunks
 
     def test_initializes_application_session_state(self):
-        app = AppTest.from_file("src/app.py")
+        app = AppTest.from_file(str(APP_PATH))
         app.run()
 
         self.assertEqual(app.session_state["messages"], [])
@@ -81,7 +84,7 @@ class TestDocMindApp(unittest.TestCase):
         {"DOCMIND_ENABLE_PDF_UPLOAD": ""},
     )
     def test_pdf_upload_is_disabled_by_default(self):
-        app = AppTest.from_file("src/app.py")
+        app = AppTest.from_file(str(APP_PATH))
         app.run()
 
         self.assertEqual(
@@ -93,7 +96,7 @@ class TestDocMindApp(unittest.TestCase):
         self.assertEqual(len(app.exception), 0)
 
     def test_displays_pdf_upload_mode(self):
-        app = AppTest.from_file("src/app.py")
+        app = AppTest.from_file(str(APP_PATH))
         app.run()
 
         app.radio[0].set_value("Upload a PDF").run()
@@ -116,7 +119,7 @@ class TestDocMindApp(unittest.TestCase):
         self.assertEqual(len(app.exception), 0)
 
     def test_rejects_malformed_pdf_upload(self):
-        app = AppTest.from_file("src/app.py")
+        app = AppTest.from_file(str(APP_PATH))
         app.run()
 
         app.radio[0].set_value("Upload a PDF").run()
@@ -142,7 +145,7 @@ class TestDocMindApp(unittest.TestCase):
         mock_process,
         mock_embed,
     ):
-        app = AppTest.from_file("src/app.py")
+        app = AppTest.from_file(str(APP_PATH))
         app.run()
 
         app.radio[0].set_value("Upload a PDF").run()
@@ -191,7 +194,7 @@ class TestDocMindApp(unittest.TestCase):
         mock_process,
         mock_embed,
     ):
-        app = AppTest.from_file("src/app.py")
+        app = AppTest.from_file(str(APP_PATH))
         app.run()
 
         app.radio[0].set_value("Upload a PDF").run()
@@ -294,7 +297,7 @@ class TestDocMindApp(unittest.TestCase):
         mock_process,
         mock_embed,
     ):
-        app = AppTest.from_file("src/app.py")
+        app = AppTest.from_file(str(APP_PATH))
         app.run()
 
         app.radio[0].set_value("Upload a PDF").run()
@@ -371,7 +374,7 @@ class TestDocMindApp(unittest.TestCase):
         mock_embed,
         mock_answer,
     ):
-        app = AppTest.from_file("src/app.py")
+        app = AppTest.from_file(str(APP_PATH))
         app.run(timeout=10)
 
         app.radio[0].set_value("Upload a PDF").run(timeout=10)
@@ -453,7 +456,7 @@ class TestDocMindApp(unittest.TestCase):
         mock_process,
         mock_embed,
     ):
-        app = AppTest.from_file("src/app.py")
+        app = AppTest.from_file(str(APP_PATH))
         app.run()
 
         app.radio[0].set_value("Upload a PDF").run()
@@ -520,7 +523,7 @@ class TestDocMindApp(unittest.TestCase):
         mock_process,
         mock_embed,
     ):
-        app = AppTest.from_file("src/app.py")
+        app = AppTest.from_file(str(APP_PATH))
         app.run()
 
         app.radio[0].set_value("Upload a PDF").run()
@@ -625,7 +628,7 @@ class TestDocMindApp(unittest.TestCase):
 
         with patch.dict("sys.modules", {"chat": mock_chat}):
 
-            app = AppTest.from_file("src/app.py")
+            app = AppTest.from_file(str(APP_PATH))
             app.run()
 
             # Confirm the default mode is Knowledge Base.
@@ -708,7 +711,7 @@ class TestDocMindApp(unittest.TestCase):
 
         with patch.dict("sys.modules", {"chat": mock_chat}):
 
-            app = AppTest.from_file("src/app.py")
+            app = AppTest.from_file(str(APP_PATH))
             app.run()
 
             question = "How are payment exceptions resolved?"
@@ -756,7 +759,7 @@ class TestDocMindApp(unittest.TestCase):
         mock_embed,
         mock_answer,
     ):
-        app = AppTest.from_file("src/app.py")
+        app = AppTest.from_file(str(APP_PATH))
         app.run()
 
         app.radio[0].set_value("Upload a PDF").run()
@@ -828,7 +831,7 @@ class TestDocMindApp(unittest.TestCase):
         mock_process,
         mock_embed,
     ):
-        app = AppTest.from_file("src/app.py")
+        app = AppTest.from_file(str(APP_PATH))
         app.run()
 
         app.radio[0].set_value("Upload a PDF").run()
@@ -913,7 +916,7 @@ class TestDocMindApp(unittest.TestCase):
                     "Simulated Git lookup failure."
                 ),
             ):
-                app = AppTest.from_file("src/app.py")
+                app = AppTest.from_file(str(APP_PATH))
                 app.run()
 
         self.assertTrue(
@@ -925,6 +928,65 @@ class TestDocMindApp(unittest.TestCase):
 
         self.assertEqual(len(app.exception), 0)
 
+
+
+    def test_uploaded_document_state_is_isolated_between_sessions(self):
+        """Verify that two independent users cannot share document state."""
+
+        user_a = AppTest.from_file(str(APP_PATH))
+        user_b = AppTest.from_file(str(APP_PATH))
+
+        user_a.run()
+        user_b.run()
+
+        # Simulate User A uploading a private document.
+        user_a.session_state["uploaded_document_name"] = "user_a.pdf"
+        user_a.session_state["embedded_document_chunks"] = [
+            {"id": "A1", "text": "Private document A"}
+        ]
+        user_a.session_state["document_messages"] = [
+            {"role": "user", "content": "Question from user A"}
+        ]
+
+        # Simulate User B uploading a different private document.
+        user_b.session_state["uploaded_document_name"] = "user_b.pdf"
+        user_b.session_state["embedded_document_chunks"] = [
+            {"id": "B1", "text": "Private document B"}
+        ]
+        user_b.session_state["document_messages"] = [
+            {"role": "user", "content": "Question from user B"}
+        ]
+
+        # Verify that each session retains only its own document.
+        self.assertEqual(
+            user_a.session_state["uploaded_document_name"],
+            "user_a.pdf",
+        )
+        self.assertEqual(
+            user_b.session_state["uploaded_document_name"],
+            "user_b.pdf",
+        )
+
+        self.assertEqual(
+            user_a.session_state["embedded_document_chunks"][0]["id"],
+            "A1",
+        )
+        self.assertEqual(
+            user_b.session_state["embedded_document_chunks"][0]["id"],
+            "B1",
+        )
+
+        self.assertEqual(
+            user_a.session_state["document_messages"][0]["content"],
+            "Question from user A",
+        )
+        self.assertEqual(
+            user_b.session_state["document_messages"][0]["content"],
+            "Question from user B",
+        )
+
+        self.assertEqual(len(user_a.exception), 0)
+        self.assertEqual(len(user_b.exception), 0)
 
 if __name__ == "__main__":
     unittest.main()

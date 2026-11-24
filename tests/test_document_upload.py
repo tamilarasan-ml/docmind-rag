@@ -102,6 +102,45 @@ class DocumentUploadTests(unittest.TestCase):
             "The uploaded file is not a valid readable PDF."
         )
 
+    def test_accepts_pdf_at_maximum_page_limit(self):
+        from document_upload import MAX_PDF_PAGES
+
+        document = fitz.open()
+        for _ in range(MAX_PDF_PAGES):
+            document.new_page()
+
+        pdf_bytes = document.tobytes()
+        document.close()
+
+        uploaded_file = io.BytesIO(pdf_bytes)
+        uploaded_file.name = "maximum_pages.pdf"
+
+        valid, message = validate_pdf_upload(uploaded_file)
+
+        self.assertTrue(valid)
+        self.assertEqual(message, "PDF validation successful.")
+
+    def test_rejects_pdf_exceeding_maximum_page_limit(self):
+        from document_upload import MAX_PDF_PAGES
+
+        document = fitz.open()
+        for _ in range(MAX_PDF_PAGES + 1):
+            document.new_page()
+
+        pdf_bytes = document.tobytes()
+        document.close()
+
+        uploaded_file = io.BytesIO(pdf_bytes)
+        uploaded_file.name = "too_many_pages.pdf"
+
+        valid, message = validate_pdf_upload(uploaded_file)
+
+        self.assertFalse(valid)
+        self.assertEqual(
+            message,
+            f"The PDF exceeds the {MAX_PDF_PAGES}-page limit."
+        )
+
     def test_rejects_zero_page_pdf(self):
         from unittest.mock import patch, MagicMock
 

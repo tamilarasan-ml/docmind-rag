@@ -259,5 +259,48 @@ class TestDocumentEmbeddings(unittest.TestCase):
                 embedding_fn=lambda text: invalid_embedding,
             )
 
+    def test_accepts_exactly_100_embedding_chunks(self):
+        chunks = [
+            {
+                "id": f"chunk_{i}",
+                "text": f"Meaningful document content for chunk {i}.",
+                "page": 1,
+            }
+            for i in range(100)
+        ]
+
+        mock_embedding = Mock(return_value=self.fake_embedding)
+
+        result = embed_document_chunks(
+            chunks,
+            embedding_fn=mock_embedding,
+        )
+
+        self.assertEqual(len(result), 100)
+        self.assertEqual(mock_embedding.call_count, 100)
+
+    def test_rejects_more_than_100_chunks_before_embedding(self):
+        chunks = [
+            {
+                "id": f"chunk_{i}",
+                "text": f"Meaningful document content for chunk {i}.",
+                "page": 1,
+            }
+            for i in range(101)
+        ]
+
+        mock_embedding = Mock(return_value=self.fake_embedding)
+
+        with self.assertRaisesRegex(
+            ValueError,
+            "exceeds the 100-chunk embedding limit"
+        ):
+            embed_document_chunks(
+                chunks,
+                embedding_fn=mock_embedding,
+            )
+
+        mock_embedding.assert_not_called()
+
 if __name__ == "__main__":
     unittest.main()

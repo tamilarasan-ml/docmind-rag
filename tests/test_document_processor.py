@@ -68,6 +68,58 @@ class TestDocumentProcessor(unittest.TestCase):
         self.assertIn(3, page_numbers)
         self.assertNotIn(2, page_numbers)
 
+    def test_accepts_text_at_maximum_character_limit(self):
+        from document_processor import MAX_EXTRACTED_TEXT_CHARS
+
+        page_text = "A" * MAX_EXTRACTED_TEXT_CHARS
+        mock_page = type("MockPage", (), {
+            "get_text": lambda self: page_text
+        })()
+
+        mock_document = type("MockDocument", (), {
+            "needs_pass": False,
+            "__iter__": lambda self: iter([mock_page]),
+            "__enter__": lambda self: self,
+            "__exit__": lambda self, *args: None,
+        })()
+
+        expected_chunks = [{"id": "chunk_0", "text": "valid", "page": 1}]
+
+        with patch("document_processor.fitz.open", return_value=mock_document):
+            with patch(
+                "document_processor.chunk_text",
+                return_value=expected_chunks,
+            ) as mock_chunk:
+                chunks = process_uploaded_pdf(b"mock-pdf")
+
+        self.assertEqual(chunks, expected_chunks)
+        mock_chunk.assert_called_once()
+
+    def test_rejects_text_exceeding_maximum_character_limit(self):
+        from document_processor import MAX_EXTRACTED_TEXT_CHARS
+
+        page_text = "A" * (MAX_EXTRACTED_TEXT_CHARS + 1)
+        mock_page = type("MockPage", (), {
+            "get_text": lambda self: page_text
+        })()
+
+        mock_document = type("MockDocument", (), {
+            "needs_pass": False,
+            "__iter__": lambda self: iter([mock_page]),
+            "__enter__": lambda self: self,
+            "__exit__": lambda self, *args: None,
+        })()
+
+        with patch("document_processor.fitz.open", return_value=mock_document):
+            with patch("document_processor.chunk_text") as mock_chunk:
+                with self.assertRaisesRegex(
+                    ValueError,
+                    "500,000-character extracted-text limit",
+                ):
+                    process_uploaded_pdf(b"mock-pdf")
+
+        mock_chunk.assert_not_called()
+
     def test_rejects_empty_bytes(self):
         with self.assertRaises(ValueError):
             process_uploaded_pdf(b"")

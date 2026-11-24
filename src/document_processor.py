@@ -3,6 +3,9 @@ import fitz
 from ingest import chunk_text
 
 
+MAX_EXTRACTED_TEXT_CHARS = 500_000
+
+
 def process_uploaded_pdf(pdf_bytes):
     """
     Extract and chunk an uploaded PDF entirely in memory.
@@ -23,9 +26,16 @@ def process_uploaded_pdf(pdf_bytes):
                 )
 
             pages = []
+            total_extracted_chars = 0
 
             for page_number, page in enumerate(document, start=1):
                 text = page.get_text()
+                total_extracted_chars += len(text)
+
+                if total_extracted_chars > MAX_EXTRACTED_TEXT_CHARS:
+                    raise ValueError(
+                        "The PDF exceeds the 500,000-character extracted-text limit."
+                    )
 
                 if text.strip():
                     pages.append({
@@ -50,6 +60,7 @@ def process_uploaded_pdf(pdf_bytes):
         pages,
         chunk_size=500,
         overlap=50,
+        max_chunks=100,
     )
 
     if not chunks:

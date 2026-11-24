@@ -48,11 +48,13 @@ def extract_text_from_pdf(pdf_path):
     return pages
 
 
-def chunk_text(pages, chunk_size=500, overlap=50):
+def chunk_text(pages, chunk_size=500, overlap=50, max_chunks=None):
     """
     Splits page text into overlapping word chunks.
-    chunk_size = target words per chunk
-    overlap = words repeated between consecutive chunks (preserves context across boundaries)
+
+    max_chunks:
+        Optional maximum number of chunks.
+        None preserves the existing unlimited behaviour.
     """
     chunks = []
     chunk_id = 0
@@ -68,6 +70,11 @@ def chunk_text(pages, chunk_size=500, overlap=50):
             chunk_text_str = " ".join(chunk_words)
 
             if not is_low_quality_chunk(chunk_text_str):
+                if max_chunks is not None and len(chunks) >= max_chunks:
+                    raise ValueError(
+                        f"The document exceeds the {max_chunks}-chunk limit."
+                    )
+
                 chunks.append({
                     "id": f"chunk_{chunk_id}",
                     "text": chunk_text_str,
