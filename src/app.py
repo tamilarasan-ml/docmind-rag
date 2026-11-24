@@ -9,6 +9,10 @@ from document_upload import validate_pdf_upload
 from document_processor import process_uploaded_pdf
 from document_embeddings import embed_document_chunks
 from document_chat import answer_uploaded_document
+from session_expiry import (
+    mark_document_activity,
+    expire_document_session,
+)
 
 
 # ---------------------------------------------------------
@@ -123,6 +127,14 @@ mode = st.radio(
     available_modes,
     horizontal=True,
 )
+
+# Check uploaded-document expiry on every application rerun,
+# regardless of the selected application mode.
+if expire_document_session(st.session_state):
+    st.warning(
+        "Your uploaded-document session expired after "
+        "30 minutes of inactivity. Please upload the PDF again."
+    )
 
 
 # =========================================================
@@ -246,6 +258,7 @@ elif mode == "Upload a PDF":
             st.session_state.uploaded_document_hash = None
             st.session_state.uploaded_document_name = None
             st.session_state.document_messages = []
+            st.session_state.document_last_activity_at = None
 
         st.info(
             "Upload a PDF to begin asking questions."
@@ -270,6 +283,7 @@ elif mode == "Upload a PDF":
             st.session_state.uploaded_document_hash = None
             st.session_state.uploaded_document_name = None
             st.session_state.document_messages = []
+            st.session_state.document_last_activity_at = None
 
             st.error(validation_message)
 
@@ -330,6 +344,8 @@ elif mode == "Upload a PDF":
                         uploaded_file.name
                     )
 
+                    mark_document_activity(st.session_state)
+
                     st.success(
                         "PDF processed successfully."
                     )
@@ -348,6 +364,7 @@ elif mode == "Upload a PDF":
                     st.session_state.uploaded_document_hash = None
                     st.session_state.uploaded_document_name = None
                     st.session_state.document_messages = []
+                    st.session_state.document_last_activity_at = None
 
                     st.error(
                         "Unable to process this PDF. "
@@ -380,6 +397,7 @@ elif mode == "Upload a PDF":
                     st.session_state.uploaded_document_hash = None
                     st.session_state.uploaded_document_name = None
                     st.session_state.document_messages = []
+                    st.session_state.document_last_activity_at = None
 
                     st.session_state.uploader_key += 1
 
@@ -415,6 +433,8 @@ elif mode == "Upload a PDF":
                 )
 
                 if question:
+
+                    mark_document_activity(st.session_state)
 
                     st.session_state.document_messages.append(
                         {

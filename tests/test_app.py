@@ -79,6 +79,79 @@ class TestDocMindApp(unittest.TestCase):
 
         self.assertEqual(len(app.exception), 0)
 
+    def test_expires_uploaded_document_session_while_in_knowledge_base_mode(self):
+        app = AppTest.from_file(str(APP_PATH))
+        app.run()
+
+        # Preserve existing Knowledge Base conversation history.
+        knowledge_base_history = [
+            {
+                "role": "user",
+                "content": "Previous Knowledge Base question.",
+            }
+        ]
+        app.session_state["messages"] = knowledge_base_history
+
+        # Simulate an uploaded PDF session that expired more than 30 minutes ago.
+        app.session_state["document_messages"] = [
+            {
+                "role": "user",
+                "content": "Previous PDF question.",
+            }
+        ]
+        app.session_state["uploaded_document_hash"] = "test-document-hash"
+        app.session_state["uploaded_document_name"] = "test.pdf"
+        app.session_state["embedded_document_chunks"] = [
+            {"id": "chunk_1", "text": "Sensitive document content."}
+        ]
+        app.session_state["document_last_activity_at"] = 0
+
+        # The default selected mode is Existing Knowledge Base.
+        app.run()
+
+        self.assertEqual(
+            app.radio[0].value,
+            "Existing Knowledge Base",
+        )
+
+        self.assertIsNone(
+            app.session_state["embedded_document_chunks"]
+        )
+        self.assertIsNone(
+            app.session_state["uploaded_document_hash"]
+        )
+        self.assertIsNone(
+            app.session_state["uploaded_document_name"]
+        )
+        self.assertEqual(
+            app.session_state["document_messages"],
+            [],
+        )
+        self.assertIsNone(
+            app.session_state["document_last_activity_at"]
+        )
+
+        # The Knowledge Base history must remain untouched.
+        self.assertEqual(
+            app.session_state["messages"],
+            knowledge_base_history,
+        )
+
+        self.assertEqual(
+            app.session_state["uploader_key"],
+            1,
+        )
+
+        self.assertTrue(
+            any(
+                "uploaded-document session expired"
+                in element.value
+                for element in app.warning
+            )
+        )
+
+        self.assertEqual(len(app.exception), 0)
+
     @patch.dict(
         "os.environ",
         {"DOCMIND_ENABLE_PDF_UPLOAD": ""},
@@ -406,10 +479,22 @@ class TestDocMindApp(unittest.TestCase):
             "application/pdf",
         ).run(timeout=10)
 
+        # Capture activity timestamp before submitting a question.
+        activity_before_question = (
+            app.session_state["document_last_activity_at"]
+        )
+        self.assertIsNotNone(activity_before_question)
+
         # Submit a question.
         app.chat_input[0].set_value(
             "How does payment processing work?"
         ).run(timeout=10)
+
+        # Verify that submitting a question refreshes the inactivity timer.
+        self.assertGreater(
+            app.session_state["document_last_activity_at"],
+            activity_before_question,
+        )
 
         # Verify the answer function invocation.
         mock_answer.assert_called_once_with(
