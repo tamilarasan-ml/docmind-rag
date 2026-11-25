@@ -28,6 +28,30 @@ def get_embedding(text):
     return response.data[0].embedding
 
 
+def get_embeddings(texts):
+    """
+    Generate embeddings for multiple texts in a single
+    Azure OpenAI API request.
+
+    Args:
+        texts: List of document chunk texts.
+
+    Returns:
+        List of embedding response records containing
+        index and embedding.
+    """
+    if not texts:
+        raise ValueError("No texts provided for batch embedding.")
+
+    response = client.embeddings.create(
+        model=embedding_deployment,
+        input=texts,
+    )
+
+    return response.data
+
+
+
 if __name__ == "__main__":
     # Load the chunks we created in Day 2
     with open(os.path.join("data", "chunks.json"), "r", encoding="utf-8") as f:
