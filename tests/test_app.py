@@ -536,7 +536,7 @@ class TestDocMindApp(unittest.TestCase):
 
     @patch("document_embeddings.embed_document_chunks")
     @patch("document_processor.process_uploaded_pdf")
-    def test_clearing_uploader_clears_document_state(
+    def test_preserves_document_state_when_uploader_is_cleared(
         self,
         mock_process,
         mock_embed,
@@ -565,37 +565,40 @@ class TestDocMindApp(unittest.TestCase):
             "application/pdf",
         ).run()
 
-        self.assertIsNotNone(
-            app.session_state["uploaded_document_hash"]
-        )
+        original_hash = app.session_state["uploaded_document_hash"]
+        original_chunks = app.session_state["embedded_document_chunks"]
+        original_name = app.session_state["uploaded_document_name"]
+
+        self.assertIsNotNone(original_hash)
 
         # Seed conversation history.
-        app.session_state["document_messages"] = [
+        original_messages = [
             {
                 "role": "user",
                 "content": "Previous question.",
             }
         ]
+        app.session_state["document_messages"] = original_messages
 
-        # Clear the uploader.
+        # Clear the uploader without explicitly removing the document.
         app.file_uploader[0].set_value(None).run()
 
-        # Verify stale document state is cleared.
-        self.assertIsNone(
-            app.session_state["embedded_document_chunks"]
+        # The processed document and conversation must be preserved.
+        self.assertEqual(
+            app.session_state["embedded_document_chunks"],
+            original_chunks,
         )
-
-        self.assertIsNone(
-            app.session_state["uploaded_document_hash"]
+        self.assertEqual(
+            app.session_state["uploaded_document_hash"],
+            original_hash,
         )
-
-        self.assertIsNone(
-            app.session_state["uploaded_document_name"]
+        self.assertEqual(
+            app.session_state["uploaded_document_name"],
+            original_name,
         )
-
         self.assertEqual(
             app.session_state["document_messages"],
-            [],
+            original_messages,
         )
 
         self.assertEqual(len(app.exception), 0)
