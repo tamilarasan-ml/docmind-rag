@@ -534,6 +534,101 @@ class TestDocMindApp(unittest.TestCase):
 
         self.assertEqual(len(app.exception), 0)
 
+
+    @patch("document_embeddings.embed_document_chunks")
+    @patch("document_processor.process_uploaded_pdf")
+    def test_preserves_uploaded_document_when_switching_modes(
+        self,
+        mock_process,
+        mock_embed,
+    ):
+        app = AppTest.from_file(str(APP_PATH))
+        app.run()
+
+        # Switch to PDF upload mode.
+        app.radio[0].set_value("Upload a PDF").run()
+
+        pdf_bytes = self.create_pdf(
+            "DOCMIND mode switching regression test."
+        )
+
+        chunks, embedded_chunks = self.create_chunks(
+            "mode_switch_chunk",
+            "Mode switching test document content.",
+        )
+
+        mock_process.return_value = chunks
+        mock_embed.return_value = embedded_chunks
+
+        # Upload and process the PDF.
+        app.file_uploader[0].upload(
+            "mode_switch_test.pdf",
+            pdf_bytes,
+            "application/pdf",
+        ).run()
+
+        original_hash = app.session_state["uploaded_document_hash"]
+        original_name = app.session_state["uploaded_document_name"]
+        original_chunks = app.session_state["embedded_document_chunks"]
+
+        self.assertIsNotNone(original_hash)
+        self.assertEqual(original_name, "mode_switch_test.pdf")
+
+        # Seed document conversation history.
+        original_messages = [
+            {
+                "role": "user",
+                "content": "What does this document explain?",
+            },
+            {
+                "role": "assistant",
+                "content": "It explains the document topic.",
+                "sources": chunks,
+            },
+        ]
+
+        app.session_state["document_messages"] = original_messages
+
+        # Switch to Existing Knowledge Base.
+        app.radio[0].set_value("Existing Knowledge Base").run()
+
+        self.assertEqual(
+            app.radio[0].value,
+            "Existing Knowledge Base",
+        )
+
+        # Switch back to PDF upload mode.
+        app.radio[0].set_value("Upload a PDF").run()
+
+        # Verify the uploaded document remains available.
+        self.assertEqual(
+            app.session_state["uploaded_document_hash"],
+            original_hash,
+        )
+        self.assertEqual(
+            app.session_state["uploaded_document_name"],
+            original_name,
+        )
+        self.assertEqual(
+            app.session_state["embedded_document_chunks"],
+            original_chunks,
+        )
+        self.assertEqual(
+            app.session_state["document_messages"],
+            original_messages,
+        )
+
+        # Verify the active document is displayed again.
+        self.assertTrue(
+            any(
+                "Active document: mode_switch_test.pdf"
+                in element.value
+                for element in app.success
+            )
+        )
+
+        self.assertEqual(len(app.exception), 0)
+
     @patch("document_embeddings.embed_document_chunks")
     @patch("document_processor.process_uploaded_pdf")
     def test_preserves_document_state_when_uploader_is_cleared(

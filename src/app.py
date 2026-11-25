@@ -366,122 +366,122 @@ elif mode == "Upload a PDF":
                     )
 
             # -------------------------------------------------
-        # Step 3: Display document information
+    # Step 3: Display document information
+    # -------------------------------------------------
+
+    if st.session_state.embedded_document_chunks:
+
+        st.success(
+            f"Active document: "
+            f"{st.session_state.uploaded_document_name}"
+        )
+
+        st.caption(
+            f"Indexed chunks: "
+            f"{len(st.session_state.embedded_document_chunks)}"
+        )
+
+        if st.button(
+            "Remove Document",
+            type="secondary",
+            key="remove_uploaded_document",
+        ):
+
+            st.session_state.embedded_document_chunks = None
+            st.session_state.uploaded_document_hash = None
+            st.session_state.uploaded_document_name = None
+            st.session_state.document_messages = []
+            st.session_state.document_last_activity_at = None
+
+            st.session_state.uploader_key += 1
+
+            st.rerun()
+
+        # -------------------------------------------------
+        # Step 4: Display conversation history
         # -------------------------------------------------
 
-        if st.session_state.embedded_document_chunks:
+        for msg in st.session_state.document_messages:
 
-            st.success(
-                f"Active document: "
-                f"{st.session_state.uploaded_document_name}"
+            with st.chat_message(msg["role"]):
+
+                st.write(msg["content"])
+
+                if "sources" in msg:
+
+                    with st.expander("Sources"):
+
+                        for chunk in msg["sources"]:
+
+                            st.markdown(
+                                f"**Page {chunk['page']}:** "
+                                f"{chunk['text'][:200]}..."
+                            )
+
+        # -------------------------------------------------
+        # Step 5: Ask questions about the uploaded PDF
+        # -------------------------------------------------
+
+        question = st.chat_input(
+            "Ask a question about your uploaded PDF..."
+        )
+
+        if question:
+
+            mark_document_activity(st.session_state)
+
+            st.session_state.document_messages.append(
+                {
+                    "role": "user",
+                    "content": question,
+                }
             )
 
-            st.caption(
-                f"Indexed chunks: "
-                f"{len(st.session_state.embedded_document_chunks)}"
-            )
+            with st.chat_message("user"):
+                st.write(question)
 
-            if st.button(
-                "Remove Document",
-                type="secondary",
-                key="remove_uploaded_document",
-            ):
+            with st.chat_message("assistant"):
 
-                st.session_state.embedded_document_chunks = None
-                st.session_state.uploaded_document_hash = None
-                st.session_state.uploaded_document_name = None
-                st.session_state.document_messages = []
-                st.session_state.document_last_activity_at = None
+                with st.spinner(
+                    "Retrieving relevant content and generating answer..."
+                ):
 
-                st.session_state.uploader_key += 1
+                    try:
 
-                st.rerun()
+                        answer, chunks = answer_uploaded_document(
+                            question=question,
+                            embedded_chunks=(
+                                st.session_state.embedded_document_chunks
+                            ),
+                        )
 
-            # -------------------------------------------------
-            # Step 4: Display conversation history
-            # -------------------------------------------------
-
-            for msg in st.session_state.document_messages:
-
-                with st.chat_message(msg["role"]):
-
-                    st.write(msg["content"])
-
-                    if "sources" in msg:
+                        st.write(answer)
 
                         with st.expander("Sources"):
 
-                            for chunk in msg["sources"]:
+                            for chunk in chunks:
 
                                 st.markdown(
                                     f"**Page {chunk['page']}:** "
                                     f"{chunk['text'][:200]}..."
                                 )
 
-            # -------------------------------------------------
-            # Step 5: Ask questions about the uploaded PDF
-            # -------------------------------------------------
+                        st.session_state.document_messages.append(
+                            {
+                                "role": "assistant",
+                                "content": answer,
+                                "sources": chunks,
+                            }
+                        )
 
-            question = st.chat_input(
-                "Ask a question about your uploaded PDF..."
-            )
+                    except Exception as exc:
 
-            if question:
+                        log_app_exception(
+                            "uploaded_document_answer",
+                            exc,
+                        )
 
-                mark_document_activity(st.session_state)
-
-                st.session_state.document_messages.append(
-                    {
-                        "role": "user",
-                        "content": question,
-                    }
-                )
-
-                with st.chat_message("user"):
-                    st.write(question)
-
-                with st.chat_message("assistant"):
-
-                    with st.spinner(
-                        "Retrieving relevant content and generating answer..."
-                    ):
-
-                        try:
-
-                            answer, chunks = answer_uploaded_document(
-                                question=question,
-                                embedded_chunks=(
-                                    st.session_state.embedded_document_chunks
-                                ),
-                            )
-
-                            st.write(answer)
-
-                            with st.expander("Sources"):
-
-                                for chunk in chunks:
-
-                                    st.markdown(
-                                        f"**Page {chunk['page']}:** "
-                                        f"{chunk['text'][:200]}..."
-                                    )
-
-                            st.session_state.document_messages.append(
-                                {
-                                    "role": "assistant",
-                                    "content": answer,
-                                    "sources": chunks,
-                                }
-                            )
-
-                        except Exception as exc:
-
-                            log_app_exception(
-                                "uploaded_document_answer",
-                                exc,
-                            )
-
-                            st.error(
-                                "Unable to generate an answer "
-                                "from this document. Please try again."
-                            )
+                        st.error(
+                            "Unable to generate an answer "
+                            "from this document. Please try again."
+                        )
