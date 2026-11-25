@@ -4,11 +4,12 @@ DOCMIND uploaded-document session expiry.
 Tracks inactivity and clears uploaded-document state after
 the configured session timeout.
 """
-
+import logging
 import time
 from collections.abc import MutableMapping
 from typing import Any
 
+logger = logging.getLogger("docmind.diagnostics")
 
 SESSION_TTL_SECONDS = 30 * 60
 
@@ -26,6 +27,7 @@ def mark_document_activity(
     )
 
 
+
 def expire_document_session(
     session_state: MutableMapping[str, Any],
     now: float | None = None,
@@ -40,12 +42,29 @@ def expire_document_session(
     last_activity = session_state.get(ACTIVITY_KEY)
 
     if last_activity is None:
+        logger.info(
+            "DOCUMENT_SESSION_EXPIRY_TIMESTAMP_MISSING"
+        )
         return False
 
     current_time = time.time() if now is None else now
+    elapsed_seconds = current_time - last_activity
 
-    if current_time - last_activity < SESSION_TTL_SECONDS:
+    logger.info(
+        "DOCUMENT_SESSION_EXPIRY_CHECK "
+        "elapsed_seconds=%.2f threshold_seconds=%d",
+        elapsed_seconds,
+        SESSION_TTL_SECONDS,
+    )
+
+    if elapsed_seconds < SESSION_TTL_SECONDS:
         return False
+
+    logger.info(
+        "DOCUMENT_SESSION_EXPIRY_TRIGGERED "
+        "elapsed_seconds=%.2f",
+        elapsed_seconds,
+    )
 
     # Clear all uploaded-document data and conversation history.
     session_state["embedded_document_chunks"] = None
