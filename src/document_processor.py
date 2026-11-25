@@ -1,6 +1,7 @@
 import fitz
 
 from ingest import chunk_text
+from document_upload import MAX_PDF_PAGES
 
 
 MAX_EXTRACTED_TEXT_CHARS = 500_000
@@ -23,6 +24,11 @@ def process_uploaded_pdf(pdf_bytes):
             if document.needs_pass:
                 raise ValueError(
                     "Password-protected PDFs are not supported."
+                )
+
+            if document.page_count > MAX_PDF_PAGES:
+                raise ValueError(
+                    f"The PDF exceeds the {MAX_PDF_PAGES}-page limit."
                 )
 
             pages = []
