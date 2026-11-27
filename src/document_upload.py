@@ -3,6 +3,7 @@ import fitz
 
 
 MAX_UPLOAD_SIZE_BYTES = 10 * 1024 * 1024  # 10 MB
+MAX_PDF_PAGES = 100
 
 
 def validate_pdf_upload(uploaded_file):
@@ -38,6 +39,11 @@ def validate_pdf_upload(uploaded_file):
 
             if document.page_count == 0:
                 return False, "The PDF contains no pages."
+
+            if document.page_count > MAX_PDF_PAGES:
+                return False, (
+                    f"The PDF exceeds the {MAX_PDF_PAGES}-page limit."
+                )
 
     except Exception:
         return False, "The uploaded file is not a valid readable PDF."

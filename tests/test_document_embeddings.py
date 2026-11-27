@@ -1,9 +1,21 @@
 
 import unittest
 
-from document_embeddings import embed_document_chunks
-from types import ModuleType
+from types import ModuleType, SimpleNamespace
 from unittest.mock import Mock, patch
+
+from document_embeddings import embed_document_chunks
+
+
+def make_batch_response(embeddings):
+    """Create mock embedding response records."""
+    return [
+        SimpleNamespace(
+            index=index,
+            embedding=embedding,
+        )
+        for index, embedding in embeddings
+    ]
 
 
 class TestDocumentEmbeddings(unittest.TestCase):
@@ -13,6 +25,219 @@ class TestDocumentEmbeddings(unittest.TestCase):
 
     def mock_embedding(self, text):
         return self.fake_embedding
+
+    # --------------------------------------------------
+    # Batch embedding tests
+    # --------------------------------------------------
+
+    def test_uses_five_batches_for_100_chunks(self):
+        chunks = [
+            {
+                "id": f"chunk_{i}",
+                "text": f"Document content for chunk {i}.",
+                "page": 1,
+            }
+            for i in range(100)
+        ]
+
+        mock_embed_module = ModuleType("embed")
+        mock_embed_module.get_embeddings = Mock(
+            side_effect=lambda texts: make_batch_response(
+                [
+                    (i, self.fake_embedding)
+                    for i in range(len(texts))
+                ]
+            )
+        )
+
+        with patch.dict(
+            "sys.modules",
+            {"embed": mock_embed_module},
+        ):
+            result = embed_document_chunks(chunks)
+
+        self.assertEqual(len(result), 100)
+
+        self.assertEqual(
+            mock_embed_module.get_embeddings.call_count,
+            5,
+        )
+
+        batch_sizes = [
+            len(call.args[0])
+            for call in mock_embed_module.get_embeddings.call_args_list
+        ]
+
+        self.assertEqual(
+            batch_sizes,
+            [20, 20, 20, 20, 20],
+        )
+
+    def test_handles_final_partial_batch(self):
+        chunks = [
+            {
+                "id": f"chunk_{i}",
+                "text": f"Document content for chunk {i}.",
+                "page": 1,
+            }
+            for i in range(45)
+        ]
+
+        mock_embed_module = ModuleType("embed")
+        mock_embed_module.get_embeddings = Mock(
+            side_effect=lambda texts: make_batch_response(
+                [
+                    (i, self.fake_embedding)
+                    for i in range(len(texts))
+                ]
+            )
+        )
+
+        with patch.dict(
+            "sys.modules",
+            {"embed": mock_embed_module},
+        ):
+            result = embed_document_chunks(chunks)
+
+        self.assertEqual(len(result), 45)
+
+        batch_sizes = [
+            len(call.args[0])
+            for call in mock_embed_module.get_embeddings.call_args_list
+        ]
+
+        self.assertEqual(
+            batch_sizes,
+            [20, 20, 5],
+        )
+
+    def test_maps_batch_response_indexes_to_original_chunks(self):
+        chunks = [
+            {
+                "id": "chunk_0",
+                "text": "First chunk.",
+                "page": 1,
+            },
+            {
+                "id": "chunk_1",
+                "text": "Second chunk.",
+                "page": 2,
+            },
+        ]
+
+        first_embedding = [0.2] * 1536
+        second_embedding = [0.3] * 1536
+
+        mock_embed_module = ModuleType("embed")
+        mock_embed_module.get_embeddings = Mock(
+            return_value=make_batch_response([
+                (1, second_embedding),
+                (0, first_embedding),
+            ])
+        )
+
+        with patch.dict(
+            "sys.modules",
+            {"embed": mock_embed_module},
+        ):
+            result = embed_document_chunks(chunks)
+
+        self.assertEqual(
+            result[0]["embedding"],
+            first_embedding,
+        )
+
+        self.assertEqual(
+            result[1]["embedding"],
+            second_embedding,
+        )
+
+        self.assertEqual(result[0]["page"], 1)
+        self.assertEqual(result[1]["page"], 2)
+
+
+    def test_rejects_missing_batch_response_index(self):
+        chunks = [
+            {"id": "chunk_0", "text": "First chunk.", "page": 1},
+            {"id": "chunk_1", "text": "Second chunk.", "page": 2},
+        ]
+
+        mock_embed_module = ModuleType("embed")
+        mock_embed_module.get_embeddings = Mock(
+            return_value=make_batch_response([
+                (0, self.fake_embedding),
+            ])
+        )
+
+        with patch.dict("sys.modules", {"embed": mock_embed_module}):
+            with self.assertRaisesRegex(
+                ValueError,
+                "unexpected number of vectors",
+            ):
+                embed_document_chunks(chunks)
+
+    def test_rejects_duplicate_batch_response_indexes(self):
+        chunks = [
+            {"id": "chunk_0", "text": "First chunk.", "page": 1},
+            {"id": "chunk_1", "text": "Second chunk.", "page": 2},
+        ]
+
+        mock_embed_module = ModuleType("embed")
+        mock_embed_module.get_embeddings = Mock(
+            return_value=make_batch_response([
+                (0, self.fake_embedding),
+                (0, self.fake_embedding),
+            ])
+        )
+
+        with patch.dict("sys.modules", {"embed": mock_embed_module}):
+            with self.assertRaisesRegex(
+                ValueError,
+                "duplicate response indexes",
+            ):
+                embed_document_chunks(chunks)
+
+    def test_rejects_unexpected_batch_response_count(self):
+        chunks = [
+            {"id": "chunk_0", "text": "First chunk.", "page": 1},
+            {"id": "chunk_1", "text": "Second chunk.", "page": 2},
+        ]
+
+        mock_embed_module = ModuleType("embed")
+        mock_embed_module.get_embeddings = Mock(
+            return_value=make_batch_response([
+                (0, self.fake_embedding),
+            ])
+        )
+
+        with patch.dict("sys.modules", {"embed": mock_embed_module}):
+            with self.assertRaisesRegex(
+                ValueError,
+                "unexpected number of vectors",
+            ):
+                embed_document_chunks(chunks)
+
+    def test_propagates_batch_embedding_api_failure(self):
+        chunks = [
+            {"id": "chunk_0", "text": "First chunk.", "page": 1},
+        ]
+
+        mock_embed_module = ModuleType("embed")
+        mock_embed_module.get_embeddings = Mock(
+            side_effect=RuntimeError("Azure batch API unavailable")
+        )
+
+        with patch.dict("sys.modules", {"embed": mock_embed_module}):
+            with self.assertRaisesRegex(
+                RuntimeError,
+                "Azure batch API unavailable",
+            ):
+                embed_document_chunks(chunks)
+
+
+    # --------------------------------------------------
+    # Existing embedding tests
+    # --------------------------------------------------
 
     def test_generates_embeddings_for_chunks(self):
         chunks = [
@@ -34,10 +259,12 @@ class TestDocumentEmbeddings(unittest.TestCase):
         )
 
         self.assertEqual(len(result), 2)
+
         self.assertEqual(
             len(result[0]["embedding"]),
             1536,
         )
+
         self.assertEqual(result[0]["page"], 1)
         self.assertEqual(result[1]["page"], 2)
 
@@ -94,6 +321,16 @@ class TestDocumentEmbeddings(unittest.TestCase):
                 embedding_fn=lambda text: [],
             )
 
+    def test_rejects_scalar_embedding(self):
+        with self.assertRaisesRegex(
+            ValueError,
+            "Embedding contains invalid numerical values.",
+        ):
+            embed_document_chunks(
+                [{"text": "Test document chunk"}],
+                embedding_fn=lambda text: 0.5,
+            )
+
     def test_rejects_unexpected_embedding_dimensions(self):
         chunks = [
             {
@@ -136,7 +373,10 @@ class TestDocumentEmbeddings(unittest.TestCase):
             }
         ]
 
-        for invalid_value in [float("inf"), float("-inf")]:
+        for invalid_value in [
+            float("inf"),
+            float("-inf"),
+        ]:
             invalid_embedding = [0.1] * 1536
             invalid_embedding[10] = invalid_value
 
@@ -198,7 +438,7 @@ class TestDocumentEmbeddings(unittest.TestCase):
 
         with self.assertRaisesRegex(
             RuntimeError,
-            "Embedding API unavailable"
+            "Embedding API unavailable",
         ):
             embed_document_chunks(
                 chunks,
@@ -206,11 +446,12 @@ class TestDocumentEmbeddings(unittest.TestCase):
             )
 
     def test_loads_default_embedding_function_lazily(self):
-
         mock_embed_module = ModuleType("embed")
 
-        mock_embed_module.get_embedding = Mock(
-            return_value=self.fake_embedding
+        mock_embed_module.get_embeddings = Mock(
+            return_value=make_batch_response([
+                (0, self.fake_embedding),
+            ])
         )
 
         chunks = [
@@ -227,8 +468,8 @@ class TestDocumentEmbeddings(unittest.TestCase):
         ):
             result = embed_document_chunks(chunks)
 
-        mock_embed_module.get_embedding.assert_called_once_with(
-            "Default embedding function test."
+        mock_embed_module.get_embeddings.assert_called_once_with(
+            ["Default embedding function test."]
         )
 
         self.assertEqual(len(result), 1)
@@ -239,7 +480,6 @@ class TestDocumentEmbeddings(unittest.TestCase):
         )
 
     def test_rejects_embedding_when_numeric_validation_raises_overflow(self):
-
         chunks = [
             {
                 "id": "chunk_0",
@@ -252,12 +492,60 @@ class TestDocumentEmbeddings(unittest.TestCase):
 
         with self.assertRaisesRegex(
             ValueError,
-            "Embedding contains invalid numerical values."
+            "Embedding contains invalid numerical values.",
         ):
             embed_document_chunks(
                 chunks,
                 embedding_fn=lambda text: invalid_embedding,
             )
+
+    def test_accepts_exactly_100_embedding_chunks(self):
+        chunks = [
+            {
+                "id": f"chunk_{i}",
+                "text": f"Meaningful document content for chunk {i}.",
+                "page": 1,
+            }
+            for i in range(100)
+        ]
+
+        mock_embedding = Mock(
+            return_value=self.fake_embedding,
+        )
+
+        result = embed_document_chunks(
+            chunks,
+            embedding_fn=mock_embedding,
+        )
+
+        self.assertEqual(len(result), 100)
+        self.assertEqual(mock_embedding.call_count, 100)
+
+    def test_rejects_more_than_100_chunks_before_embedding(self):
+        chunks = [
+            {
+                "id": f"chunk_{i}",
+                "text": f"Meaningful document content for chunk {i}.",
+                "page": 1,
+            }
+            for i in range(101)
+        ]
+
+        mock_embedding = Mock(
+            return_value=self.fake_embedding,
+        )
+
+        with self.assertRaisesRegex(
+            ValueError,
+            "exceeds the 100-chunk embedding limit",
+        ):
+            embed_document_chunks(
+                chunks,
+                embedding_fn=mock_embedding,
+            )
+
+        mock_embedding.assert_not_called()
+
 
 if __name__ == "__main__":
     unittest.main()

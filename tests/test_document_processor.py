@@ -3,7 +3,7 @@ import unittest
 import fitz
 
 from document_processor import process_uploaded_pdf
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 
 def create_test_pdf(page_texts):
@@ -67,6 +67,119 @@ class TestDocumentProcessor(unittest.TestCase):
         self.assertIn(1, page_numbers)
         self.assertIn(3, page_numbers)
         self.assertNotIn(2, page_numbers)
+
+    def test_accepts_pdf_at_maximum_page_limit(self):
+        from document_upload import MAX_PDF_PAGES
+
+        mock_pages = [MagicMock() for _ in range(MAX_PDF_PAGES)]
+        for mock_page in mock_pages:
+            mock_page.get_text.return_value = (
+                "Meaningful document content. " * 20
+            )
+
+        mock_document = MagicMock()
+        mock_document.__enter__.return_value = mock_document
+        mock_document.needs_pass = False
+        mock_document.page_count = MAX_PDF_PAGES
+        mock_document.__iter__.return_value = iter(mock_pages)
+
+        expected_chunks = [
+            {"id": "chunk_0", "text": "valid", "page": 1}
+        ]
+
+        with patch(
+            "document_processor.fitz.open",
+            return_value=mock_document,
+        ):
+            with patch(
+                "document_processor.chunk_text",
+                return_value=expected_chunks,
+            ):
+                chunks = process_uploaded_pdf(b"mock-pdf")
+
+        self.assertEqual(chunks, expected_chunks)
+        self.assertEqual(
+            sum(page.get_text.call_count for page in mock_pages),
+            MAX_PDF_PAGES,
+        )
+
+    def test_rejects_pdf_exceeding_maximum_page_limit_before_extraction(self):
+        from document_upload import MAX_PDF_PAGES
+
+        mock_page = MagicMock()
+
+        mock_document = MagicMock()
+        mock_document.__enter__.return_value = mock_document
+        mock_document.needs_pass = False
+        mock_document.page_count = MAX_PDF_PAGES + 1
+        mock_document.__iter__.return_value = iter([mock_page])
+
+        with patch(
+            "document_processor.fitz.open",
+            return_value=mock_document,
+        ):
+            with self.assertRaisesRegex(
+                ValueError,
+                f"The PDF exceeds the {MAX_PDF_PAGES}-page limit.",
+            ):
+                process_uploaded_pdf(b"mock-pdf")
+
+        mock_document.__iter__.assert_not_called()
+        mock_page.get_text.assert_not_called()
+
+    def test_accepts_text_at_maximum_character_limit(self):
+        from document_processor import MAX_EXTRACTED_TEXT_CHARS
+
+        page_text = "A" * MAX_EXTRACTED_TEXT_CHARS
+        mock_page = type("MockPage", (), {
+            "get_text": lambda self: page_text
+        })()
+
+        mock_document = type("MockDocument", (), {
+            "needs_pass": False,
+            "page_count": 1,
+            "__iter__": lambda self: iter([mock_page]),
+            "__enter__": lambda self: self,
+            "__exit__": lambda self, *args: None,
+        })()
+
+        expected_chunks = [{"id": "chunk_0", "text": "valid", "page": 1}]
+
+        with patch("document_processor.fitz.open", return_value=mock_document):
+            with patch(
+                "document_processor.chunk_text",
+                return_value=expected_chunks,
+            ) as mock_chunk:
+                chunks = process_uploaded_pdf(b"mock-pdf")
+
+        self.assertEqual(chunks, expected_chunks)
+        mock_chunk.assert_called_once()
+
+    def test_rejects_text_exceeding_maximum_character_limit(self):
+        from document_processor import MAX_EXTRACTED_TEXT_CHARS
+
+        page_text = "A" * (MAX_EXTRACTED_TEXT_CHARS + 1)
+        mock_page = type("MockPage", (), {
+            "get_text": lambda self: page_text
+        })()
+
+        mock_document = type("MockDocument", (), {
+            "needs_pass": False,
+            "page_count": 1,
+            "__iter__": lambda self: iter([mock_page]),
+            "__enter__": lambda self: self,
+            "__exit__": lambda self, *args: None,
+        })()
+
+        with patch("document_processor.fitz.open", return_value=mock_document):
+            with patch("document_processor.chunk_text") as mock_chunk:
+                with self.assertRaisesRegex(
+                    ValueError,
+                    "500,000-character extracted-text limit",
+                ):
+                    process_uploaded_pdf(b"mock-pdf")
+
+        mock_chunk.assert_not_called()
 
     def test_rejects_empty_bytes(self):
         with self.assertRaises(ValueError):

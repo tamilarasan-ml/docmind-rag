@@ -1,9 +1,12 @@
 import unittest
+from pathlib import Path
 import fitz
 
 from streamlit.testing.v1 import AppTest
 from types import ModuleType
 from unittest.mock import Mock, patch
+
+APP_PATH = Path(__file__).resolve().parents[1] / "src" / "app.py"
 
 
 
@@ -51,7 +54,7 @@ class TestDocMindApp(unittest.TestCase):
         return chunks, embedded_chunks
 
     def test_initializes_application_session_state(self):
-        app = AppTest.from_file("src/app.py")
+        app = AppTest.from_file(str(APP_PATH))
         app.run()
 
         self.assertEqual(app.session_state["messages"], [])
@@ -76,12 +79,85 @@ class TestDocMindApp(unittest.TestCase):
 
         self.assertEqual(len(app.exception), 0)
 
+    def test_expires_uploaded_document_session_while_in_knowledge_base_mode(self):
+        app = AppTest.from_file(str(APP_PATH))
+        app.run()
+
+        # Preserve existing Knowledge Base conversation history.
+        knowledge_base_history = [
+            {
+                "role": "user",
+                "content": "Previous Knowledge Base question.",
+            }
+        ]
+        app.session_state["messages"] = knowledge_base_history
+
+        # Simulate an uploaded PDF session that expired more than 30 minutes ago.
+        app.session_state["document_messages"] = [
+            {
+                "role": "user",
+                "content": "Previous PDF question.",
+            }
+        ]
+        app.session_state["uploaded_document_hash"] = "test-document-hash"
+        app.session_state["uploaded_document_name"] = "test.pdf"
+        app.session_state["embedded_document_chunks"] = [
+            {"id": "chunk_1", "text": "Sensitive document content."}
+        ]
+        app.session_state["document_last_activity_at"] = 0
+
+        # The default selected mode is Existing Knowledge Base.
+        app.run()
+
+        self.assertEqual(
+            app.radio[0].value,
+            "Existing Knowledge Base",
+        )
+
+        self.assertIsNone(
+            app.session_state["embedded_document_chunks"]
+        )
+        self.assertIsNone(
+            app.session_state["uploaded_document_hash"]
+        )
+        self.assertIsNone(
+            app.session_state["uploaded_document_name"]
+        )
+        self.assertEqual(
+            app.session_state["document_messages"],
+            [],
+        )
+        self.assertIsNone(
+            app.session_state["document_last_activity_at"]
+        )
+
+        # The Knowledge Base history must remain untouched.
+        self.assertEqual(
+            app.session_state["messages"],
+            knowledge_base_history,
+        )
+
+        self.assertEqual(
+            app.session_state["uploader_key"],
+            1,
+        )
+
+        self.assertTrue(
+            any(
+                "uploaded-document session expired"
+                in element.value
+                for element in app.warning
+            )
+        )
+
+        self.assertEqual(len(app.exception), 0)
+
     @patch.dict(
         "os.environ",
         {"DOCMIND_ENABLE_PDF_UPLOAD": ""},
     )
     def test_pdf_upload_is_disabled_by_default(self):
-        app = AppTest.from_file("src/app.py")
+        app = AppTest.from_file(str(APP_PATH))
         app.run()
 
         self.assertEqual(
@@ -93,7 +169,7 @@ class TestDocMindApp(unittest.TestCase):
         self.assertEqual(len(app.exception), 0)
 
     def test_displays_pdf_upload_mode(self):
-        app = AppTest.from_file("src/app.py")
+        app = AppTest.from_file(str(APP_PATH))
         app.run()
 
         app.radio[0].set_value("Upload a PDF").run()
@@ -116,7 +192,7 @@ class TestDocMindApp(unittest.TestCase):
         self.assertEqual(len(app.exception), 0)
 
     def test_rejects_malformed_pdf_upload(self):
-        app = AppTest.from_file("src/app.py")
+        app = AppTest.from_file(str(APP_PATH))
         app.run()
 
         app.radio[0].set_value("Upload a PDF").run()
@@ -142,7 +218,7 @@ class TestDocMindApp(unittest.TestCase):
         mock_process,
         mock_embed,
     ):
-        app = AppTest.from_file("src/app.py")
+        app = AppTest.from_file(str(APP_PATH))
         app.run()
 
         app.radio[0].set_value("Upload a PDF").run()
@@ -191,7 +267,7 @@ class TestDocMindApp(unittest.TestCase):
         mock_process,
         mock_embed,
     ):
-        app = AppTest.from_file("src/app.py")
+        app = AppTest.from_file(str(APP_PATH))
         app.run()
 
         app.radio[0].set_value("Upload a PDF").run()
@@ -294,10 +370,11 @@ class TestDocMindApp(unittest.TestCase):
         mock_process,
         mock_embed,
     ):
-        app = AppTest.from_file("src/app.py")
-        app.run()
+        app = AppTest.from_file(str(APP_PATH))
+        app.run(timeout=10)
 
-        app.radio[0].set_value("Upload a PDF").run()
+        # Switch to PDF upload mode.
+        app.radio[0].set_value("Upload a PDF").run(timeout=10)
 
         pdf_bytes = self.create_pdf(
             "DOCMIND document removal test."
@@ -316,11 +393,15 @@ class TestDocMindApp(unittest.TestCase):
             "remove_test.pdf",
             pdf_bytes,
             "application/pdf",
-        ).run()
+        ).run(timeout=10)
 
         self.assertEqual(
             app.session_state["uploaded_document_name"],
             "remove_test.pdf",
+        )
+
+        self.assertIsNotNone(
+            app.session_state["embedded_document_chunks"]
         )
 
         # Add conversation history to verify cleanup.
@@ -334,30 +415,59 @@ class TestDocMindApp(unittest.TestCase):
         previous_uploader_key = app.session_state["uploader_key"]
 
         # Click Remove Document.
-        app.button[0].click().run()
+        app.button[0].click().run(timeout=10)
 
-        # Verify document state is cleared.
+        # Verify document session state is cleared.
         self.assertIsNone(
             app.session_state["embedded_document_chunks"]
         )
-
         self.assertIsNone(
             app.session_state["uploaded_document_hash"]
         )
-
         self.assertIsNone(
             app.session_state["uploaded_document_name"]
         )
-
         self.assertEqual(
             app.session_state["document_messages"],
             [],
+        )
+        self.assertIsNone(
+            app.session_state["document_last_activity_at"]
         )
 
         # Verify uploader is reset.
         self.assertEqual(
             app.session_state["uploader_key"],
             previous_uploader_key + 1,
+        )
+
+        # Verify removed document is no longer displayed.
+        self.assertFalse(
+            any(
+                "Active document:" in element.value
+                for element in app.success
+            )
+        )
+        self.assertFalse(
+            any(
+                "Indexed chunks:" in element.value
+                for element in app.caption
+            )
+        )
+
+        # Verify application prompts for a new PDF.
+        self.assertTrue(
+            any(
+                "Upload a PDF to begin asking questions."
+                in element.value
+                for element in app.info
+            )
+        )
+
+        # Verify document chat is unavailable after removal.
+        self.assertEqual(
+            len(app.chat_input),
+            0,
         )
 
         self.assertEqual(len(app.exception), 0)
@@ -371,7 +481,7 @@ class TestDocMindApp(unittest.TestCase):
         mock_embed,
         mock_answer,
     ):
-        app = AppTest.from_file("src/app.py")
+        app = AppTest.from_file(str(APP_PATH))
         app.run(timeout=10)
 
         app.radio[0].set_value("Upload a PDF").run(timeout=10)
@@ -403,10 +513,22 @@ class TestDocMindApp(unittest.TestCase):
             "application/pdf",
         ).run(timeout=10)
 
+        # Capture activity timestamp before submitting a question.
+        activity_before_question = (
+            app.session_state["document_last_activity_at"]
+        )
+        self.assertIsNotNone(activity_before_question)
+
         # Submit a question.
         app.chat_input[0].set_value(
             "How does payment processing work?"
         ).run(timeout=10)
+
+        # Verify that submitting a question refreshes the inactivity timer.
+        self.assertGreater(
+            app.session_state["document_last_activity_at"],
+            activity_before_question,
+        )
 
         # Verify the answer function invocation.
         mock_answer.assert_called_once_with(
@@ -446,14 +568,109 @@ class TestDocMindApp(unittest.TestCase):
 
         self.assertEqual(len(app.exception), 0)
 
+
     @patch("document_embeddings.embed_document_chunks")
     @patch("document_processor.process_uploaded_pdf")
-    def test_clearing_uploader_clears_document_state(
+    def test_preserves_uploaded_document_when_switching_modes(
         self,
         mock_process,
         mock_embed,
     ):
-        app = AppTest.from_file("src/app.py")
+        app = AppTest.from_file(str(APP_PATH))
+        app.run()
+
+        # Switch to PDF upload mode.
+        app.radio[0].set_value("Upload a PDF").run()
+
+        pdf_bytes = self.create_pdf(
+            "DOCMIND mode switching regression test."
+        )
+
+        chunks, embedded_chunks = self.create_chunks(
+            "mode_switch_chunk",
+            "Mode switching test document content.",
+        )
+
+        mock_process.return_value = chunks
+        mock_embed.return_value = embedded_chunks
+
+        # Upload and process the PDF.
+        app.file_uploader[0].upload(
+            "mode_switch_test.pdf",
+            pdf_bytes,
+            "application/pdf",
+        ).run()
+
+        original_hash = app.session_state["uploaded_document_hash"]
+        original_name = app.session_state["uploaded_document_name"]
+        original_chunks = app.session_state["embedded_document_chunks"]
+
+        self.assertIsNotNone(original_hash)
+        self.assertEqual(original_name, "mode_switch_test.pdf")
+
+        # Seed document conversation history.
+        original_messages = [
+            {
+                "role": "user",
+                "content": "What does this document explain?",
+            },
+            {
+                "role": "assistant",
+                "content": "It explains the document topic.",
+                "sources": chunks,
+            },
+        ]
+
+        app.session_state["document_messages"] = original_messages
+
+        # Switch to Existing Knowledge Base.
+        app.radio[0].set_value("Existing Knowledge Base").run()
+
+        self.assertEqual(
+            app.radio[0].value,
+            "Existing Knowledge Base",
+        )
+
+        # Switch back to PDF upload mode.
+        app.radio[0].set_value("Upload a PDF").run()
+
+        # Verify the uploaded document remains available.
+        self.assertEqual(
+            app.session_state["uploaded_document_hash"],
+            original_hash,
+        )
+        self.assertEqual(
+            app.session_state["uploaded_document_name"],
+            original_name,
+        )
+        self.assertEqual(
+            app.session_state["embedded_document_chunks"],
+            original_chunks,
+        )
+        self.assertEqual(
+            app.session_state["document_messages"],
+            original_messages,
+        )
+
+        # Verify the active document is displayed again.
+        self.assertTrue(
+            any(
+                "Active document: mode_switch_test.pdf"
+                in element.value
+                for element in app.success
+            )
+        )
+
+        self.assertEqual(len(app.exception), 0)
+
+    @patch("document_embeddings.embed_document_chunks")
+    @patch("document_processor.process_uploaded_pdf")
+    def test_preserves_document_state_when_uploader_is_cleared(
+        self,
+        mock_process,
+        mock_embed,
+    ):
+        app = AppTest.from_file(str(APP_PATH))
         app.run()
 
         app.radio[0].set_value("Upload a PDF").run()
@@ -477,37 +694,40 @@ class TestDocMindApp(unittest.TestCase):
             "application/pdf",
         ).run()
 
-        self.assertIsNotNone(
-            app.session_state["uploaded_document_hash"]
-        )
+        original_hash = app.session_state["uploaded_document_hash"]
+        original_chunks = app.session_state["embedded_document_chunks"]
+        original_name = app.session_state["uploaded_document_name"]
+
+        self.assertIsNotNone(original_hash)
 
         # Seed conversation history.
-        app.session_state["document_messages"] = [
+        original_messages = [
             {
                 "role": "user",
                 "content": "Previous question.",
             }
         ]
+        app.session_state["document_messages"] = original_messages
 
-        # Clear the uploader.
+        # Clear the uploader without explicitly removing the document.
         app.file_uploader[0].set_value(None).run()
 
-        # Verify stale document state is cleared.
-        self.assertIsNone(
-            app.session_state["embedded_document_chunks"]
+        # The processed document and conversation must be preserved.
+        self.assertEqual(
+            app.session_state["embedded_document_chunks"],
+            original_chunks,
         )
-
-        self.assertIsNone(
-            app.session_state["uploaded_document_hash"]
+        self.assertEqual(
+            app.session_state["uploaded_document_hash"],
+            original_hash,
         )
-
-        self.assertIsNone(
-            app.session_state["uploaded_document_name"]
+        self.assertEqual(
+            app.session_state["uploaded_document_name"],
+            original_name,
         )
-
         self.assertEqual(
             app.session_state["document_messages"],
-            [],
+            original_messages,
         )
 
         self.assertEqual(len(app.exception), 0)
@@ -520,7 +740,7 @@ class TestDocMindApp(unittest.TestCase):
         mock_process,
         mock_embed,
     ):
-        app = AppTest.from_file("src/app.py")
+        app = AppTest.from_file(str(APP_PATH))
         app.run()
 
         app.radio[0].set_value("Upload a PDF").run()
@@ -625,7 +845,7 @@ class TestDocMindApp(unittest.TestCase):
 
         with patch.dict("sys.modules", {"chat": mock_chat}):
 
-            app = AppTest.from_file("src/app.py")
+            app = AppTest.from_file(str(APP_PATH))
             app.run()
 
             # Confirm the default mode is Knowledge Base.
@@ -708,7 +928,7 @@ class TestDocMindApp(unittest.TestCase):
 
         with patch.dict("sys.modules", {"chat": mock_chat}):
 
-            app = AppTest.from_file("src/app.py")
+            app = AppTest.from_file(str(APP_PATH))
             app.run()
 
             question = "How are payment exceptions resolved?"
@@ -756,7 +976,7 @@ class TestDocMindApp(unittest.TestCase):
         mock_embed,
         mock_answer,
     ):
-        app = AppTest.from_file("src/app.py")
+        app = AppTest.from_file(str(APP_PATH))
         app.run()
 
         app.radio[0].set_value("Upload a PDF").run()
@@ -828,7 +1048,7 @@ class TestDocMindApp(unittest.TestCase):
         mock_process,
         mock_embed,
     ):
-        app = AppTest.from_file("src/app.py")
+        app = AppTest.from_file(str(APP_PATH))
         app.run()
 
         app.radio[0].set_value("Upload a PDF").run()
@@ -913,7 +1133,7 @@ class TestDocMindApp(unittest.TestCase):
                     "Simulated Git lookup failure."
                 ),
             ):
-                app = AppTest.from_file("src/app.py")
+                app = AppTest.from_file(str(APP_PATH))
                 app.run()
 
         self.assertTrue(
@@ -925,6 +1145,65 @@ class TestDocMindApp(unittest.TestCase):
 
         self.assertEqual(len(app.exception), 0)
 
+
+
+    def test_uploaded_document_state_is_isolated_between_sessions(self):
+        """Verify that two independent users cannot share document state."""
+
+        user_a = AppTest.from_file(str(APP_PATH))
+        user_b = AppTest.from_file(str(APP_PATH))
+
+        user_a.run()
+        user_b.run()
+
+        # Simulate User A uploading a private document.
+        user_a.session_state["uploaded_document_name"] = "user_a.pdf"
+        user_a.session_state["embedded_document_chunks"] = [
+            {"id": "A1", "text": "Private document A"}
+        ]
+        user_a.session_state["document_messages"] = [
+            {"role": "user", "content": "Question from user A"}
+        ]
+
+        # Simulate User B uploading a different private document.
+        user_b.session_state["uploaded_document_name"] = "user_b.pdf"
+        user_b.session_state["embedded_document_chunks"] = [
+            {"id": "B1", "text": "Private document B"}
+        ]
+        user_b.session_state["document_messages"] = [
+            {"role": "user", "content": "Question from user B"}
+        ]
+
+        # Verify that each session retains only its own document.
+        self.assertEqual(
+            user_a.session_state["uploaded_document_name"],
+            "user_a.pdf",
+        )
+        self.assertEqual(
+            user_b.session_state["uploaded_document_name"],
+            "user_b.pdf",
+        )
+
+        self.assertEqual(
+            user_a.session_state["embedded_document_chunks"][0]["id"],
+            "A1",
+        )
+        self.assertEqual(
+            user_b.session_state["embedded_document_chunks"][0]["id"],
+            "B1",
+        )
+
+        self.assertEqual(
+            user_a.session_state["document_messages"][0]["content"],
+            "Question from user A",
+        )
+        self.assertEqual(
+            user_b.session_state["document_messages"][0]["content"],
+            "Question from user B",
+        )
+
+        self.assertEqual(len(user_a.exception), 0)
+        self.assertEqual(len(user_b.exception), 0)
 
 if __name__ == "__main__":
     unittest.main()
