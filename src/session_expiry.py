@@ -99,20 +99,3 @@ def expire_document_session(
 
     clear_uploaded_document_session()
     return True
-
-
-    # Clear all uploaded-document data and conversation history.
-    session_state["embedded_document_chunks"] = None
-    session_state["uploaded_document_hash"] = None
-    session_state["uploaded_document_name"] = None
-    session_state["document_messages"] = []
-
-    # Reset activity tracking.
-    session_state[ACTIVITY_KEY] = None
-
-    # Reset the uploader so the old PDF cannot be reused.
-    session_state["uploader_key"] = (
-        session_state.get("uploader_key", 0) + 1
-    )
-
-    return True
