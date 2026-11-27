@@ -371,9 +371,10 @@ class TestDocMindApp(unittest.TestCase):
         mock_embed,
     ):
         app = AppTest.from_file(str(APP_PATH))
-        app.run()
+        app.run(timeout=10)
 
-        app.radio[0].set_value("Upload a PDF").run()
+        # Switch to PDF upload mode.
+        app.radio[0].set_value("Upload a PDF").run(timeout=10)
 
         pdf_bytes = self.create_pdf(
             "DOCMIND document removal test."
@@ -392,11 +393,15 @@ class TestDocMindApp(unittest.TestCase):
             "remove_test.pdf",
             pdf_bytes,
             "application/pdf",
-        ).run()
+        ).run(timeout=10)
 
         self.assertEqual(
             app.session_state["uploaded_document_name"],
             "remove_test.pdf",
+        )
+
+        self.assertIsNotNone(
+            app.session_state["embedded_document_chunks"]
         )
 
         # Add conversation history to verify cleanup.
@@ -410,30 +415,59 @@ class TestDocMindApp(unittest.TestCase):
         previous_uploader_key = app.session_state["uploader_key"]
 
         # Click Remove Document.
-        app.button[0].click().run()
+        app.button[0].click().run(timeout=10)
 
-        # Verify document state is cleared.
+        # Verify document session state is cleared.
         self.assertIsNone(
             app.session_state["embedded_document_chunks"]
         )
-
         self.assertIsNone(
             app.session_state["uploaded_document_hash"]
         )
-
         self.assertIsNone(
             app.session_state["uploaded_document_name"]
         )
-
         self.assertEqual(
             app.session_state["document_messages"],
             [],
+        )
+        self.assertIsNone(
+            app.session_state["document_last_activity_at"]
         )
 
         # Verify uploader is reset.
         self.assertEqual(
             app.session_state["uploader_key"],
             previous_uploader_key + 1,
+        )
+
+        # Verify removed document is no longer displayed.
+        self.assertFalse(
+            any(
+                "Active document:" in element.value
+                for element in app.success
+            )
+        )
+        self.assertFalse(
+            any(
+                "Indexed chunks:" in element.value
+                for element in app.caption
+            )
+        )
+
+        # Verify application prompts for a new PDF.
+        self.assertTrue(
+            any(
+                "Upload a PDF to begin asking questions."
+                in element.value
+                for element in app.info
+            )
+        )
+
+        # Verify document chat is unavailable after removal.
+        self.assertEqual(
+            len(app.chat_input),
+            0,
         )
 
         self.assertEqual(len(app.exception), 0)
