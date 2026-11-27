@@ -22,6 +22,7 @@ from session_expiry import (
 logger = logging.getLogger("docmind.diagnostics")
 
 
+
 def log_app_exception(event, exc):
     """
     Log safe application error metadata without exposing
@@ -34,12 +35,25 @@ def log_app_exception(event, exc):
             str(exc).encode("utf-8")
         ).hexdigest()[:12]
 
+        status_code = getattr(exc, "status_code", None)
+        error_code = getattr(exc, "code", None)
+        param = getattr(exc, "param", None)
+        request_id = getattr(exc, "request_id", None)
+
         logger.error(
-            "DOCMIND_APP_ERROR event=%s exception_type=%s exception_hash=%s",
+            "DOCMIND_APP_ERROR event=%s "
+            "exception_type=%s status_code=%s "
+            "error_code=%s param=%s request_id=%s "
+            "exception_hash=%s",
             event,
             type(exc).__name__,
+            status_code,
+            error_code,
+            param,
+            request_id,
             exception_hash,
         )
+
 
 
 # ---------------------------------------------------------
