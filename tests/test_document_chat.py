@@ -1,3 +1,4 @@
+
 import unittest
 from unittest.mock import patch
 
@@ -32,6 +33,13 @@ class TestDocumentChat(unittest.TestCase):
             }
         ]
 
+        self.expected_safe_chunks = [
+            {
+                "page": 2,
+                "text": "Payment processing information.",
+            }
+        ]
+
     def test_rejects_empty_question(self):
         for question in ["", "   ", None]:
             with self.subTest(question=question):
@@ -61,7 +69,9 @@ class TestDocumentChat(unittest.TestCase):
         mock_retrieve,
         mock_answer,
     ):
-        expected_answer = "Payments are processed through the gateway [page 2]."
+        expected_answer = (
+            "Payments are processed through the gateway [page 2]."
+        )
 
         mock_retrieve.return_value = self.retrieved_chunks
         mock_answer.return_value = (
@@ -86,6 +96,8 @@ class TestDocumentChat(unittest.TestCase):
         mock_answer.assert_called_once_with(
             "How are payments processed?",
             self.retrieved_chunks,
+            model_chunks=self.expected_safe_chunks,
+            safe_evidence=self.expected_safe_chunks,
         )
 
     @patch("document_chat.answer_with_chunks")
@@ -153,6 +165,8 @@ class TestDocumentChat(unittest.TestCase):
         mock_answer.assert_called_once_with(
             "How are payments processed?",
             self.retrieved_chunks,
+            model_chunks=self.expected_safe_chunks,
+            safe_evidence=self.expected_safe_chunks,
         )
 
 

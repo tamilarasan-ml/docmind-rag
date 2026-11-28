@@ -1,3 +1,4 @@
+
 import unittest
 from pathlib import Path
 import fitz
@@ -7,7 +8,6 @@ from types import ModuleType
 from unittest.mock import Mock, patch
 
 APP_PATH = Path(__file__).resolve().parents[1] / "src" / "app.py"
-
 
 
 class TestDocMindApp(unittest.TestCase):
@@ -417,6 +417,9 @@ class TestDocMindApp(unittest.TestCase):
         # Click Remove Document.
         app.button[0].click().run(timeout=10)
 
+        # Refresh rendered elements after Streamlit's rerun.
+        app.run(timeout=10)
+
         # Verify document session state is cleared.
         self.assertIsNone(
             app.session_state["embedded_document_chunks"]
@@ -448,6 +451,7 @@ class TestDocMindApp(unittest.TestCase):
                 for element in app.success
             )
         )
+
         self.assertFalse(
             any(
                 "Indexed chunks:" in element.value
@@ -567,7 +571,6 @@ class TestDocMindApp(unittest.TestCase):
         )
 
         self.assertEqual(len(app.exception), 0)
-
 
     @patch("document_embeddings.embed_document_chunks")
     @patch("document_processor.process_uploaded_pdf")
@@ -1145,8 +1148,6 @@ class TestDocMindApp(unittest.TestCase):
 
         self.assertEqual(len(app.exception), 0)
 
-
-
     def test_uploaded_document_state_is_isolated_between_sessions(self):
         """Verify that two independent users cannot share document state."""
 
@@ -1204,6 +1205,7 @@ class TestDocMindApp(unittest.TestCase):
 
         self.assertEqual(len(user_a.exception), 0)
         self.assertEqual(len(user_b.exception), 0)
+
 
 if __name__ == "__main__":
     unittest.main()
