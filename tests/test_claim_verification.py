@@ -135,6 +135,51 @@ class SemanticVerifierTests(unittest.TestCase):
         },
     )
     @patch("claim_verification.AzureOpenAI")
+    def test_content_filter_failure_is_identified_separately(
+        self,
+        mock_client_class,
+    ):
+        client = MagicMock()
+
+        class ContentFilterError(Exception):
+            status_code = 400
+            code = "content_filter"
+            param = "prompt"
+
+        client.beta.chat.completions.parse.side_effect = (
+            ContentFilterError("Sensitive diagnostic text")
+        )
+
+        result = verify_claim_semantically(
+            "The document describes product development.",
+            self.evidence,
+            client=client,
+            deployment="test-deployment",
+        )
+
+        self.assertEqual(result["verdict"], "uncertain")
+        self.assertEqual(
+            result["verification_status"],
+            "content_filter",
+        )
+        self.assertEqual(result["error_status_code"], 400)
+        self.assertEqual(result["error_code"], "content_filter")
+        self.assertEqual(result["error_param"], "prompt")
+
+        self.assertNotIn(
+            "Sensitive diagnostic text",
+            str(result),
+        )
+
+    @patch.dict(
+        "os.environ",
+        {
+            "AZURE_OPENAI_ENDPOINT": "https://test.openai.azure.com/",
+            "AZURE_OPENAI_API_KEY": "test-api-key",
+            "AZURE_OPENAI_API_VERSION": "2024-10-21",
+        },
+    )
+    @patch("claim_verification.AzureOpenAI")
     def test_initializes_default_azure_client(
         self,
         mock_client_class,
@@ -168,6 +213,14 @@ class SemanticVerifierTests(unittest.TestCase):
             api_version="2024-10-21",
         )
 
+    @patch.dict(
+        "os.environ",
+        {
+            "AZURE_OPENAI_ENDPOINT": "https://test.openai.azure.com/",
+            "AZURE_OPENAI_API_KEY": "test-api-key",
+            "AZURE_OPENAI_API_VERSION": "2024-10-21",
+        },
+    )
     @patch("claim_verification.AzureOpenAI")
     def test_returns_uncertain_when_verifier_refuses(
         self,
